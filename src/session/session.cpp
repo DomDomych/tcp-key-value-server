@@ -56,7 +56,11 @@ void Session::read()
 
 void Session::write(const std::string &message)
 {
-    boost::asio::write(socket_, boost::asio::buffer(message));
+    boost::system::error_code ec;
+
+    boost::asio::write(socket_, boost::asio::buffer(message),ec);
+
+    if(ec)return;
 }
 
 void Session::start()
