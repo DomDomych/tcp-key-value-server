@@ -18,7 +18,7 @@ class Session
 
   private:
     void read();
-    void write(const std::string &message);
+    bool write(const std::string &message);
 
     tcp::socket socket_;
     std::string buffer_;
