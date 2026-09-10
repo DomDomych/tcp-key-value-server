@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -17,4 +18,5 @@ class Server
     boost::asio::ip::tcp::acceptor acceptor_;
 
     std::unordered_map<std::string, std::string> storage_;
+    std::mutex storage_mutex_;
 };

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(kv_server LANGUAGES CXX)
 
+find_package(Threads REQUIRED)
+
 add_executable(kv_server
     main.cpp
     src/server/server.cpp
@@ -14,6 +16,11 @@ target_include_directories(kv_server
     PRIVATE
     include
 )
+
+target_link_libraries(kv_server
+    PRIVATE
+    Threads::Threads
+)   
 
 target_compile_features(kv_server
     PRIVATE
