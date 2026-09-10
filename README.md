@@ -74,13 +74,13 @@ cmake --build build
 Start the server:
 
 ```bash
-./kv_server
+./scripts/run_server.sh
 ```
 
 Start the client in another terminal:
 
 ```bash
-./kv_client
+./scripts/run_client.sh
 ```
 
 The server listens on:
