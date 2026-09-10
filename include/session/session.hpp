@@ -11,7 +11,7 @@ class Session
 {
   public:
     explicit Session(tcp::socket socket,
-                     std::unordered_map<std::string, std::string> &server_storage
+                     std::unordered_map<std::string, std::string> &server_storage,
                      std::mutex& storage_mutex);
 
     void start();
