@@ -48,7 +48,7 @@ void Session::read()
             response = process(req, server_storage_);
         }
 
-        if(!write(response))
+        if (!write(response))
         {
             break;
         }
@@ -61,7 +61,7 @@ bool Session::write(const std::string &message)
 {
     boost::system::error_code ec;
 
-    boost::asio::write(socket_, boost::asio::buffer(message),ec);
+    boost::asio::write(socket_, boost::asio::buffer(message), ec);
 
     return !ec;
 }
