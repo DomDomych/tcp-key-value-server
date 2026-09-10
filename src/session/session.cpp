@@ -8,8 +8,8 @@
 
 using tcp = boost::asio::ip::tcp;
 
-Session::Session(tcp::socket socket, std::unordered_map<std::string, std::string> &server_storage)
-    : socket_(std::move(socket)), server_storage_(server_storage)
+Session::Session(tcp::socket socket, std::unordered_map<std::string, std::string> &server_storage,std::mutex& storage_mutex)
+    : socket_(std::move(socket)), server_storage_(server_storage),storage_mutex_(storage_mutex)
 {
 }
 
