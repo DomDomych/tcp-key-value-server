@@ -1,0 +1,25 @@
+# Каждая секция ID — отдельный TCP-клиент.
+
+ID: 1
+SET client1_key hello
+GET client1_key
+DEL client1_key
+
+ID: 2
+SET client2_key world
+GET client2_key
+GET client2_key
+DEL client2_key
+
+ID: 3
+SET client3_first 100
+SET client3_second 200
+GET client3_first
+GET client3_second
+DEL client3_first
+DEL client3_second
+
+ID: 5
+SET test value
+GET test
+DEL test
