@@ -18,7 +18,7 @@ response=sock.recv(1024)
 
 assert response==b"OK!\n"
 
-sock.sendall((b"GET name"))
+sock.sendall((b"GET name\n"))
 response=sock.recv(1024)
 
 assert response==b"No Such Key!\n"
