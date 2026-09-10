@@ -61,6 +61,8 @@ Requirements:
 - Boost
 - CMake
 - Linux
+- GoogleTest
+- Python3
 
 Using CMake:
 
