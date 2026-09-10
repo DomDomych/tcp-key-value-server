@@ -1,12 +1,23 @@
 # TCP Key-Value Server
 
-A simple synchronous TCP key-value server and command-line client written in C++20 using Boost.Asio.
+A multithreaded TCP key-value server written in C++20 using Boost.Asio.
 
-The server stores key-value pairs in memory and uses a small line-based protocol.
+The server stores key-value pairs in memory and supports multiple concurrent clients.
 
-## Commands
+## Features
 
-The following commands are supported:
+- TCP networking with Boost.Asio
+- Thread-per-client concurrency
+- Shared in-memory storage
+- Thread-safe access using `std::mutex`
+- `SET`, `GET` and `DEL` commands
+- Interactive TCP client
+- Python load testing
+- CMake and Makefile support
+
+## Protocol
+
+The server uses a simple line-based protocol.
 
 ```text
 SET key value
@@ -17,39 +28,45 @@ DEL key
 Example:
 
 ```text
-> SET name Damir
-OK!
-
-> GET name
-Damir
-
-> DEL name
-OK!
-
-> GET name
-No Such Key!
+SET language cpp
+GET language
+DEL language
 ```
 
-## Requirements
+## Architecture
 
-* C++20 compatible compiler
-* CMake 3.16+
-* Boost
-* clang-format (optional, for formatting)
+The server uses synchronous Boost.Asio I/O.
+
+The main thread accepts incoming connections and creates a separate
+`std::thread` for every connected client.
+
+```text
+Client 1 ── Thread 1 ──┐
+Client 2 ── Thread 2 ──┼── Shared storage
+Client 3 ── Thread 3 ──┘
+```
+
+All sessions share the same `std::unordered_map`.
+
+Access to the storage is protected by `std::mutex`.
+
+The current thread-per-client implementation is used as a baseline for
+future comparison with asynchronous Boost.Asio models.
 
 ## Build
 
-Build both the server and client:
+Requirements:
+
+- C++20 compiler
+- Boost
+- CMake
+- Linux
+
+Using CMake:
 
 ```bash
-./scripts/build.sh
-```
-
-The executables will be created in the `build` directory:
-
-```text
-build/kv_server
-build/kv_client
+cmake -S . -B build
+cmake --build build
 ```
 
 ## Run
@@ -57,41 +74,75 @@ build/kv_client
 Start the server:
 
 ```bash
-./scripts/run_server.sh
+./kv_server
 ```
 
-The server listens on port `8080`.
-
-In another terminal, start the client:
+Start the client in another terminal:
 
 ```bash
-./scripts/run_client.sh
+./kv_client
 ```
 
-The client connects to `127.0.0.1:8080` and provides a simple interactive prompt:
+The server listens on:
 
 ```text
-Connected
-> SET language C++
-OK!
-> GET language
-C++
-> DEL language
-OK!
+127.0.0.1:8080
 ```
 
 Type `exit` to close the client.
 
-## Formatting
+## Load Test
 
-Format the source files with:
+The project includes a Python load test for running multiple TCP clients
+concurrently.
 
-```bash
-./scripts/format.sh
+Clients and their commands are described in `scenario.txt`:
+
+```text
+ID: 1
+SET key1 value1
+GET key1
+DEL key1
+
+ID: 2
+SET key2 value2
+GET key2
+DEL key2
 ```
 
-## Notes
+Each `ID` represents a separate client connection.
 
-The current implementation uses synchronous I/O and handles one connected client at a time.
+Run the benchmark:
 
-The storage is shared between client sessions and exists only while the server is running.
+```bash
+./tests/load/run_load_test.sh
+```
+
+Example result:
+
+```text
+Clients:     100
+Commands:    10000
+Time:        0.552169 seconds
+Throughput:  18110.40 commands/sec
+Errors:      0
+```
+
+The same workload can be reused to compare different server implementations.
+
+## Current Status
+
+Current architecture:
+
+```text
+synchronous Boost.Asio
+        +
+thread per client
+        +
+shared in-memory storage
+        +
+std::mutex
+```
+
+Future versions may explore asynchronous I/O, worker pools and persistent
+storage.
