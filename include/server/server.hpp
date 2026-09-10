@@ -3,6 +3,8 @@
 #include <boost/asio.hpp>
 #include <string>
 #include <unordered_map>
+#include <mutex>
+
 
 class Server
 {
@@ -17,4 +19,5 @@ class Server
     boost::asio::ip::tcp::acceptor acceptor_;
 
     std::unordered_map<std::string, std::string> storage_;
+    std::mutex storage_mutex_;
 };
