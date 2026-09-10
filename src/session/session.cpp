@@ -39,7 +39,16 @@ void Session::read()
         Request req{};
 
         parse(req, temp_data);
-        write(process(req, server_storage_));
+
+        std::string response;
+
+        {
+            std::lock_guard<std::mutex> lock(storage_mutex_);
+            response=process(req,server_storage_);
+        }
+
+        write(response);
+        
 
         buffer_.erase(0, bytes);
     }
