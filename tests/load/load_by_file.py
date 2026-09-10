@@ -181,6 +181,7 @@ def main():
             print(f"Client {client_id}: {error}")
 
         print(f"Failed clients: {len(errors)}")
+        raise SystemExit(1)
     else:
         print("Errors:      0")
 
