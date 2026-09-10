@@ -1,10 +1,9 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <mutex>
 #include <string>
 #include <unordered_map>
-#include <mutex>
-
 
 class Server
 {
