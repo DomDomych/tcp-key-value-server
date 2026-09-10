@@ -13,7 +13,7 @@ The server stores key-value pairs in memory and supports multiple concurrent cli
 - `SET`, `GET` and `DEL` commands
 - Interactive TCP client
 - Python load testing
-- CMake and Makefile support
+- CMake build system
 
 ## Protocol
 
