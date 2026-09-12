@@ -3,5 +3,6 @@
 #include "request.hpp"
 #include <string>
 #include <unordered_map>
+#include <storage/storage.hpp>
 
-std::string process(const Request &req, std::unordered_map<std::string, std::string> &storage);
+std::string process(const Request &req, Storage &storage);
