@@ -8,9 +8,8 @@
 
 using tcp = boost::asio::ip::tcp;
 
-Session::Session(tcp::socket socket, std::unordered_map<std::string, std::string> &server_storage,
-                 std::mutex &storage_mutex)
-    : socket_(std::move(socket)), server_storage_(server_storage), storage_mutex_(storage_mutex)
+Session::Session(tcp::socket socket, Storage &server_storage)
+    : socket_(std::move(socket)), server_storage_(server_storage)
 {
 }
 
@@ -43,10 +42,7 @@ void Session::read()
 
         std::string response;
 
-        {
-            std::lock_guard<std::mutex> lock(storage_mutex_);
-            response = process(req, server_storage_);
-        }
+        response=process(req,server_storage_);
 
         if (!write(response))
         {
