@@ -17,7 +17,7 @@ void Server::accept_client()
     std::thread client_thread(
         [this, socket = std::move(socket)]() mutable
         {
-            Session session(std::move(socket), storage_, storage_mutex_);
+            Session session(std::move(socket),storage_);
             session.start();
         });
 
