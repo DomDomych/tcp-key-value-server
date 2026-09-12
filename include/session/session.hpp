@@ -1,9 +1,9 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <mutex>
 #include <string>
 #include <unordered_map>
+#include <storage.hpp>
 
 using tcp = boost::asio::ip::tcp;
 
@@ -11,8 +11,7 @@ class Session
 {
   public:
     explicit Session(tcp::socket socket,
-                     std::unordered_map<std::string, std::string> &server_storage,
-                     std::mutex &storage_mutex);
+                     Storage &server_storage);
 
     void start();
 
@@ -23,6 +22,5 @@ class Session
     tcp::socket socket_;
     std::string buffer_;
 
-    std::unordered_map<std::string, std::string> &server_storage_;
-    std::mutex &storage_mutex_;
+    Storage& server_storage_;
 };
