@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 
+#include "storage/storage.hpp"
 #include "protocol/command_processor.hpp"
 #include "protocol/request.hpp"
-#include <string>
-#include <unordered_map>
+
 
 TEST(ProcessorTest, GetCommand)
 {
-    std::unordered_map<std::string, std::string> storage{{"key", "value"}};
+    
+    Storage storage;
+    storage.set("key","value");
 
     Request req{"GET", "key"};
 
@@ -18,19 +20,21 @@ TEST(ProcessorTest, SetCommand)
 {
 
     Request req{"SET", "key", "value"};
-    std::unordered_map<std::string, std::string> storage;
+    Storage storage;
+    storage.set("key","value");
 
-    EXPECT_EQ(process(req, storage), "OK!\n");
-    ASSERT_NE(storage.find("key"), storage.end());
-    EXPECT_EQ(storage.at("key"), "value");
+    EXPECT_EQ(process(req, storage), "OK\n");
+    ASSERT_NE(storage.get("key"),"value");
 }
 
 TEST(ProcessorTest, DelCommand)
 {
-    std::unordered_map<std::string, std::string> storage{{"key", "value"}};
+    Storage storage;
+    storage.set("key","value");
 
     Request req{"DEL", "key"};
 
-    EXPECT_EQ(process(req, storage), "OK!\n");
-    EXPECT_EQ(storage.find("key"), storage.end());
+    EXPECT_EQ(process(req, storage), "OK\n");
+    ASSERT_NE(storage.del("key"),true);
+    EXPECT_EQ(storage.get("key"),std::nullopt);
 }
