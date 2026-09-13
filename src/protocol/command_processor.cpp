@@ -1,8 +1,8 @@
 #include "protocol/command_processor.hpp"
 #include <string>
-#include <unordered_map>
+#include "storage/storage.hpp"
 
-std::string process(const Request &req, std::unordered_map<std::string, std::string> &storage)
+std::string process(const Request &req, Storage& storage)
 {
 
     if (req.command.empty())
@@ -13,55 +13,47 @@ std::string process(const Request &req, std::unordered_map<std::string, std::str
 
         if (req.key.empty())
         {
-            return "No Key!\n";
+            return "NO KEY\n";
         }
         if (req.value.empty())
         {
-            return "No Value!\n";
+            return "NO VALUE\n";
         }
-        storage[std::string(req.key)] = std::string(req.value);
-        return "OK!\n";
+        storage.set(req.key,req.value);
+        return "OK\n";
     }
 
     else if (req.command == "GET")
     {
-        if (req.key.empty())
+        if(req.key.empty())
         {
-            return "No Key!\n";
+            return "NO KEY\n";
         }
 
-        auto it = storage.find(std::string(req.key));
-
-        if (it == storage.end())
+        auto value = storage.get(std::string(req.key));
+        if(!value)
         {
-            return "No Such Key!\n";
+            return "NO SUCH KEY\n";
         }
-
-        std::string response = it->second + "\n";
-        return response;
+        else return *value;
     }
 
     else if (req.command == "DEL")
     {
-        if (req.key.empty())
+        if(req.key.empty())
         {
-            return "No Key!\n";
+            return "NO KEY\n";
         }
 
-        auto it = storage.find(std::string(req.key));
-
-        if (it == storage.end())
+        if(storage.del(std::string(req.key))==false)
         {
-            return "No Such Key!\n";
+            return "NO SUCH KEY\n";
         }
-
-        storage.erase(std::string(req.key));
-
-        return "OK!\n";
+        else return "OK\n";
     }
 
     else
     {
-        return "ERROR!\n";
+        return "ERROR\n";
     }
 }
