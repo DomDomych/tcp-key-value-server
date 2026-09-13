@@ -30,7 +30,7 @@ std::string process(const Request &req, Storage& storage)
             return "NO KEY\n";
         }
 
-        auto value = storage.get(std::string(req.key));
+        auto value = storage.get(req.key);
         if(!value)
         {
             return "NO SUCH KEY\n";
@@ -45,7 +45,7 @@ std::string process(const Request &req, Storage& storage)
             return "NO KEY\n";
         }
 
-        if(storage.del(std::string(req.key))==false)
+        if(storage.del(req.key)==false)
         {
             return "NO SUCH KEY\n";
         }
