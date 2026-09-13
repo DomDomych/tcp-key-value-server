@@ -10,6 +10,7 @@ add_executable(kv_server
     src/session/session.cpp
     src/protocol/parser.cpp
     src/protocol/command_processor.cpp
+    src/storage/storage.cpp
 )
 
 target_include_directories(kv_server
@@ -59,6 +60,7 @@ add_executable(kv_tests
     tests/processor_tests.cpp
     src/protocol/command_processor.cpp
     src/protocol/parser.cpp
+    src/storage/storage.cpp
 )
 
 target_link_libraries(kv_tests
