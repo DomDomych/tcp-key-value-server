@@ -24,15 +24,7 @@ std::optional<std::string> Storage::get(std::string_view key) const
 
 bool Storage::del(std::string_view key)
 {
-    std::unique_lock(mutex_);
+    std::unique_lock lock(mutex_);
 
-    auto it = storage_.find(std::string(key));
-
-    if(it==storage_.end())
-    {
-        return false;
-    }
-
-    storage_.erase(std::string(key));
-    return true;
+    return storage_.erase(std::string(key))!=0;
 }
