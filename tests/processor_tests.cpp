@@ -18,23 +18,24 @@ TEST(ProcessorTest, GetCommand)
 
 TEST(ProcessorTest, SetCommand)
 {
-
-    Request req{"SET", "key", "value"};
     Storage storage;
-    storage.set("key","value");
+    Request req{"SET", "key", "value"};
 
     EXPECT_EQ(process(req, storage), "OK\n");
-    ASSERT_NE(storage.get("key"),"value");
+
+    auto value = storage.get("key");
+
+    ASSERT_TRUE(value.has_value());
+    EXPECT_EQ(*value, "value");
 }
 
 TEST(ProcessorTest, DelCommand)
 {
     Storage storage;
-    storage.set("key","value");
+    storage.set("key", "value");
 
     Request req{"DEL", "key"};
 
     EXPECT_EQ(process(req, storage), "OK\n");
-    ASSERT_NE(storage.del("key"),true);
-    EXPECT_EQ(storage.get("key"),std::nullopt);
+    EXPECT_FALSE(storage.get("key").has_value());
 }
