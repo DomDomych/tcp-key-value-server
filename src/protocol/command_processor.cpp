@@ -1,8 +1,8 @@
 #include "protocol/command_processor.hpp"
-#include <string>
 #include "storage/storage.hpp"
+#include <string>
 
-std::string process(const Request &req, Storage& storage)
+std::string process(const Request &req, Storage &storage)
 {
 
     if (req.command.empty())
@@ -19,37 +19,39 @@ std::string process(const Request &req, Storage& storage)
         {
             return "NO VALUE\n";
         }
-        storage.set(req.key,req.value);
+        storage.set(req.key, req.value);
         return "OK\n";
     }
 
     else if (req.command == "GET")
     {
-        if(req.key.empty())
+        if (req.key.empty())
         {
             return "NO KEY\n";
         }
 
         auto value = storage.get(req.key);
-        if(!value)
+        if (!value)
         {
             return "NO SUCH KEY\n";
         }
-        else return *value+'\n';
+        else
+            return *value + '\n';
     }
 
     else if (req.command == "DEL")
     {
-        if(req.key.empty())
+        if (req.key.empty())
         {
             return "NO KEY\n";
         }
 
-        if(storage.del(req.key)==false)
+        if (storage.del(req.key) == false)
         {
             return "NO SUCH KEY\n";
         }
-        else return "OK\n";
+        else
+            return "OK\n";
     }
 
     else

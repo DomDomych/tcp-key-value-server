@@ -42,7 +42,7 @@ void Session::read()
 
         std::string response;
 
-        response=process(req,server_storage_);
+        response = process(req, server_storage_);
 
         if (!write(response))
         {

@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
 
-#include "storage/storage.hpp"
 #include "protocol/command_processor.hpp"
 #include "protocol/request.hpp"
-
+#include "storage/storage.hpp"
 
 TEST(ProcessorTest, GetCommand)
 {
-    
+
     Storage storage;
-    storage.set("key","value");
+    storage.set("key", "value");
 
     Request req{"GET", "key"};
 
