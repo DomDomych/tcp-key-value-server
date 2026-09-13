@@ -35,7 +35,7 @@ std::string process(const Request &req, Storage& storage)
         {
             return "NO SUCH KEY\n";
         }
-        else return *value;
+        else return *value+'\n';
     }
 
     else if (req.command == "DEL")
