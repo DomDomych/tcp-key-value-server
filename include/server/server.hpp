@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#include <storage.hpp>
+#include <storage/storage.hpp>
 
 class Server
 {
@@ -19,5 +19,4 @@ class Server
     boost::asio::ip::tcp::acceptor acceptor_;
 
     Storage storage_;
-    std::mutex storage_mutex_;
 };
