@@ -8,6 +8,7 @@ int main()
     Server server(io, 8080);
 
     server.start();
+    io.run();
 
     return 0;
 }
