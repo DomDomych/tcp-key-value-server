@@ -20,6 +20,7 @@ class Session : public std::enable_shared_from_this<Session>
 
     tcp::socket socket_;
     std::string buffer_;
+    std::string response_;
 
     Storage &server_storage_;
 };
