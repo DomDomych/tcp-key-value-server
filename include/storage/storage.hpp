@@ -10,11 +10,42 @@
 class Storage
 {
   public:
-    void set(std::string_view key, std::string_view value);
-    std::optional<std::string> get(std::string_view key) const;
+    Storage(/*db config*/);
+
+    std::optional<std::string> get(std::string_view key);
+    bool set(std::string_view key, std::string_view value);
     bool del(std::string_view key);
 
   private:
-    std::unordered_map<std::string, std::string> storage_;
-    mutable std::shared_mutex mutex_;
+    PostgresStorage database_;
+    LruCache cache_;
+};
+
+class PostgresStorage
+{
+  public:
+    PostgresStorage(/*connection settings*/);
+
+    std::optional<std::string> get(std::string_view key);
+    bool set(std::string_view key, std::string_view value);
+    bool del(std::string_view key);
+
+  private:
+  // some connection stuff here
+};
+
+class LruCache
+{
+
+  public:
+    LruCache(std::size_t capacity);
+
+    std::optional<std::string> get(std::string_view key);
+
+    void put(std::string key, std::string value);
+
+    void erase(std::string_view key);
+
+  private:
+  // other incapsulated stuff
 };
