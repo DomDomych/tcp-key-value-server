@@ -16,7 +16,7 @@ class Session : public std::enable_shared_from_this<Session>
 
   private:
     void read();
-    bool write(const std::string &message);
+    void write();
 
     tcp::socket socket_;
     std::string buffer_;

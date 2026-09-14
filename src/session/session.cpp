@@ -15,45 +15,38 @@ Session::Session(tcp::socket socket, Storage &server_storage)
 
 void Session::read()
 {
-    for (;;)
-    {
-        boost::system::error_code ec;
+    auto self = shared_from_this();
+    boost::asio::async_read_until(socket_, boost::asio::dynamic_buffer(buffer_), '\n',
+                                  [self](boost::system::error_code ec, std::size_t bytes)
+                                  {
+                                      if (ec)
+                                          return;
 
-        std::size_t bytes =
-            boost::asio::read_until(socket_, boost::asio::dynamic_buffer(buffer_), '\n', ec);
+                                      std::string_view temp_data{self->buffer_.data(), bytes};
 
-        if (ec)
-            break;
-        std::string_view temp_data{buffer_.data(), bytes};
+                                      if (!temp_data.empty() && temp_data.back() == '\n')
+                                      {
+                                          temp_data.remove_suffix(1);
+                                      }
 
-        if (!temp_data.empty() && temp_data.back() == '\n')
-        {
-            temp_data.remove_suffix(1);
-        }
+                                      if (!temp_data.empty() && temp_data.back() == '\r')
+                                      {
+                                          temp_data.remove_suffix(1);
+                                      }
 
-        if (!temp_data.empty() && temp_data.back() == '\r')
-        {
-            temp_data.remove_suffix(1);
-        }
+                                      Request req{};
 
-        Request req{};
+                                      parse(req, temp_data);
 
-        parse(req, temp_data);
+                                      self->response_ = process(req, self->server_storage_);
 
-        std::string response;
+                                      self->buffer_.erase(0,bytes);
 
-        response = process(req, server_storage_);
-
-        if (!write(response))
-        {
-            break;
-        }
-
-        buffer_.erase(0, bytes);
-    }
+                                      self->write();
+                                  });
 }
 
-bool Session::write(const std::string &message)
+void Session::write()
 {
     boost::system::error_code ec;
 
