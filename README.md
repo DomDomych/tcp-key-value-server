@@ -143,7 +143,7 @@ thread per client
         +
 shared in-memory storage
         +
-std::mutex
+std::shared_mutex
 ```
 
 Future versions may explore asynchronous I/O, worker pools and persistent
