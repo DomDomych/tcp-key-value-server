@@ -48,11 +48,18 @@ void Session::read()
 
 void Session::write()
 {
-    boost::system::error_code ec;
+    auto self = shared_from_this();
 
-    boost::asio::write(socket_, boost::asio::buffer(message), ec);
+    boost::asio::async_write(
+        socket_,
+        boost::asio::buffer(response_),
+        [self](boost::system::error_code ec,std::size_t)
+        {
+            if(ec)return;
 
-    return !ec;
+            self->read();
+        }
+    );
 }
 
 void Session::start()
