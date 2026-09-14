@@ -17,10 +17,7 @@ void Server::accept_client()
         {
             if (!ec)
             {
-                auto session =
-                    std::make_shared<Session>(
-                        std::move(socket),
-                        storage_);
+                auto session = std::make_shared<Session>(std::move(socket), storage_);
 
                 session->start();
             }

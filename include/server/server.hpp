@@ -5,7 +5,6 @@
 #include <storage/storage.hpp>
 #include <string>
 
-
 class Server
 {
   public:

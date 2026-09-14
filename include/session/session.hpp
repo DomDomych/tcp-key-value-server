@@ -1,9 +1,9 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <memory>
 #include <storage/storage.hpp>
 #include <string>
-#include <memory>
 
 using tcp = boost::asio::ip::tcp;
 

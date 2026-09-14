@@ -14,21 +14,17 @@ int main()
     Server server(io, 8080);
     server.start();
 
-    const std::size_t thread_count =
-        std::max(1u, std::thread::hardware_concurrency());
+    const std::size_t thread_count = std::max(1u, std::thread::hardware_concurrency());
 
     std::vector<std::thread> workers;
     workers.reserve(thread_count);
 
     for (std::size_t i = 0; i < thread_count; ++i)
     {
-        workers.emplace_back([&io]()
-        {
-            io.run();
-        });
+        workers.emplace_back([&io]() { io.run(); });
     }
 
-    for (auto& worker : workers)
+    for (auto &worker : workers)
     {
         worker.join();
     }

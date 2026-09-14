@@ -40,7 +40,7 @@ void Session::read()
 
                                       self->response_ = process(req, self->server_storage_);
 
-                                      self->buffer_.erase(0,bytes);
+                                      self->buffer_.erase(0, bytes);
 
                                       self->write();
                                   });
@@ -50,16 +50,14 @@ void Session::write()
 {
     auto self = shared_from_this();
 
-    boost::asio::async_write(
-        socket_,
-        boost::asio::buffer(response_),
-        [self](boost::system::error_code ec,std::size_t)
-        {
-            if(ec)return;
+    boost::asio::async_write(socket_, boost::asio::buffer(response_),
+                             [self](boost::system::error_code ec, std::size_t)
+                             {
+                                 if (ec)
+                                     return;
 
-            self->read();
-        }
-    );
+                                 self->read();
+                             });
 }
 
 void Session::start()
