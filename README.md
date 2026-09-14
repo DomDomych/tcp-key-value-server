@@ -48,7 +48,7 @@ Client 3 ── Thread 3 ──┘
 
 All sessions share the same `std::unordered_map`.
 
-Access to the storage is protected by `std::mutex`.
+Access to the storage is protected by `std::shared_mutex`.
 
 The current thread-per-client implementation is used as a baseline for
 future comparison with asynchronous Boost.Asio models.
