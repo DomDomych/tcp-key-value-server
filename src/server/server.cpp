@@ -13,25 +13,23 @@ Server::Server(boost::asio::io_context &io, unsigned short port)
 void Server::accept_client()
 {
     acceptor_.async_accept(
-        [this](boost::system::error_code ec,tcp::socket socket)
+        [this](boost::system::error_code ec, tcp::socket socket)
         {
-            if(!ec)
+            if (!ec)
             {
-                std::make_shared<Session>(
-                    std::move(socket),
-                    storage_
-                )->start();
+                auto session =
+                    std::make_shared<Session>(
+                        std::move(socket),
+                        storage_);
+
+                session->start();
             }
             accept_client();
-        }
-    );
+        });
 }
 
 void Server::start()
 {
 
-    for (;;)
-    {
-        accept_client();
-    }
+    accept_client();
 }
