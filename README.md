@@ -1,19 +1,20 @@
 # TCP Key-Value Server
 
-A multithreaded TCP key-value server written in C++20 using Boost.Asio.
+An asynchronous TCP key-value server written in C++20 using Boost.Asio.
 
 The server stores key-value pairs in memory and supports multiple concurrent clients.
 
 ## Features
 
-- TCP networking with Boost.Asio
-- Thread-per-client concurrency
-- Shared in-memory storage
-- Thread-safe access using `std::mutex`
-- `SET`, `GET` and `DEL` commands
-- Interactive TCP client
-- Python load testing
-- CMake build system
+* TCP networking with Boost.Asio
+* Asynchronous accept, read and write operations
+* Multiple worker threads running a shared `io_context`
+* Shared in-memory storage
+* Thread-safe access using `std::shared_mutex`
+* `SET`, `GET` and `DEL` commands
+* Interactive TCP client
+* Python load testing
+* CMake build system
 
 ## Protocol
 
@@ -35,34 +36,39 @@ DEL language
 
 ## Architecture
 
-The server uses synchronous Boost.Asio I/O.
+The server uses asynchronous Boost.Asio I/O.
 
-The main thread accepts incoming connections and creates a separate
-`std::thread` for every connected client.
+Incoming connections are accepted with `async_accept()`.
+Each connected client is represented by a `Session`, which performs asynchronous reads and writes.
+
+Several worker threads run the same `boost::asio::io_context` and execute ready completion handlers.
 
 ```text
-Client 1 ── Thread 1 ──┐
-Client 2 ── Thread 2 ──┼── Shared storage
-Client 3 ── Thread 3 ──┘
+Client 1 ── Session 1 ──┐
+Client 2 ── Session 2 ──┼── io_context ── Worker threads
+Client 3 ── Session 3 ──┘
+                            |
+                            └── Shared storage
 ```
 
-All sessions share the same `std::unordered_map`.
+Threads are not assigned permanently to individual clients.
 
-Access to the storage is protected by `std::shared_mutex`.
+While a client is waiting for network I/O, no worker thread is blocked waiting for that connection. When an asynchronous operation completes, one of the threads running `io_context.run()` executes its callback.
 
-The current thread-per-client implementation is used as a baseline for
-future comparison with asynchronous Boost.Asio models.
+All sessions share the same in-memory storage.
+
+Access to the storage is protected by `std::shared_mutex`, allowing multiple concurrent readers while writes require exclusive access.
 
 ## Build
 
 Requirements:
 
-- C++20 compiler
-- Boost
-- CMake
-- Linux
-- GoogleTest
-- Python3
+* C++20 compiler
+* Boost
+* CMake
+* Linux
+* GoogleTest
+* Python3
 
 Using CMake:
 
@@ -95,18 +101,19 @@ Type `exit` to close the client.
 
 ## Load Test
 
-The project includes a Python load test for running multiple TCP clients
-concurrently.
+The project includes a Python load test for running multiple TCP clients concurrently.
 
 Clients and their commands are described in `scenario.txt`:
 
 ```text
 ID: 1
+
 SET key1 value1
 GET key1
 DEL key1
 
 ID: 2
+
 SET key2 value2
 GET key2
 DEL key2
@@ -137,14 +144,17 @@ The same workload can be reused to compare different server implementations.
 Current architecture:
 
 ```text
-synchronous Boost.Asio
+asynchronous Boost.Asio
         +
-thread per client
+shared io_context
+        +
+multiple worker threads
         +
 shared in-memory storage
         +
 std::shared_mutex
 ```
 
-Future versions may explore asynchronous I/O, worker pools and persistent
-storage.
+The server no longer uses a separate thread for every client connection.
+
+Future versions may add persistent storage and further server-side improvements.
