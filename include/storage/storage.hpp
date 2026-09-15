@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <pqxx/pqxx>
 
 class Storage
 {
@@ -31,7 +32,8 @@ class PostgresStorage
     bool del(std::string_view key);
 
   private:
-  // some connection stuff here
+    pqxx::connection connection_;
+    std::mutex mutex_;
 };
 
 class LruCache
