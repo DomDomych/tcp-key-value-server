@@ -25,7 +25,7 @@ class Storage
 class PostgresStorage
 {
   public:
-    PostgresStorage(/*connection settings*/);
+    PostgresStorage(std::string connection_string);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
