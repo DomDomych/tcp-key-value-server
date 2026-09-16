@@ -8,20 +8,6 @@
 #include <unordered_map>
 #include <pqxx/pqxx>
 
-class Storage
-{
-  public:
-    Storage(std::string connection_string);
-
-    std::optional<std::string> get(std::string_view key);
-    bool set(std::string_view key, std::string_view value);
-    bool del(std::string_view key);
-
-  private:
-    PostgresStorage database_;
-    LruCache cache_;
-};
-
 class PostgresStorage
 {
   public:
@@ -35,6 +21,21 @@ class PostgresStorage
     pqxx::connection connection_;
     std::mutex mutex_;
 };
+
+class Storage
+{
+  public:
+    Storage(std::string connection_string);
+
+    std::optional<std::string> get(std::string_view key);
+    bool set(std::string_view key, std::string_view value);
+    bool del(std::string_view key);
+
+  private:
+    PostgresStorage database_;
+    //LruCache cache_;
+};
+
 
 class LruCache
 {
