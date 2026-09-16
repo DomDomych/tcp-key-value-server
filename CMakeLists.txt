@@ -14,6 +14,7 @@ add_executable(kv_server
     src/protocol/command_processor.cpp
     src/storage/storage.cpp
     src/storage/postgres_storage.cpp
+    src/storage/lru_cache.cpp
 )
 
 target_include_directories(kv_server
@@ -68,16 +69,21 @@ add_executable(kv_tests
     src/protocol/parser.cpp
     src/storage/storage.cpp
     src/storage/postgres_storage.cpp
+    src/storage/lru_cache.cpp
 )
 
 target_link_libraries(kv_tests
     PRIVATE
     GTest::gtest_main
+    ${PQXX_LIBRARIES}
+
 )
 
 target_include_directories(kv_tests
     PRIVATE
-    include)
+    include
+    ${PQXX_LIBRARIES}
+)
 
 target_compile_features(kv_tests
     PRIVATE
