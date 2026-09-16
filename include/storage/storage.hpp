@@ -11,7 +11,7 @@
 class Storage
 {
   public:
-    Storage(/*db config*/);
+    Storage(std::string connection_string);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
