@@ -30,4 +30,29 @@ std::optional<std::string> PostgresStorage::get(std::string_view key)
     return result[0]["value"].as<std::string>();
 }
 
+bool PostgresStorage::set(std::string_view key,std::string_view value)
+{
+    std::lock_guard{mutex_};
 
+    try
+    {
+        pqxx::work transaction{connection_};
+
+        transaction.exec(
+            "INSERT INTO kv_store (key, value)"
+            "VALUES ($1, $2) "
+            "ON CONFLICT (key) "
+            "DO UPDATE SET value = EXCLUDED.value",
+            pqxx::params{transaction,key}
+        );
+
+        transaction.commit();
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        return false;
+    }
+    
+}
