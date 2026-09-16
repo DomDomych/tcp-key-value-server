@@ -12,7 +12,7 @@ Server::Server(boost::asio::io_context &io, unsigned short port)
         "port=5432 "
         "dbname=kv_server "
         "user=kv_user "
-        "password=1234 "
+        "password=1234 ",100
     )
 {
 }
