@@ -56,3 +56,27 @@ bool PostgresStorage::set(std::string_view key,std::string_view value)
     }
     
 }
+
+bool PostgresStorage::del(std::string_view key)
+{
+    std::lock_guard lock{mutex_};
+
+    try
+    {
+        pqxx::work transaction{connection_};
+
+        auto result = transaction.exec(
+            "DELETE FROM kv_store WHERE key = $1",
+            pqxx::params{transaction, key});
+
+        const bool deleted = result.affected_rows() != 0;
+
+        transaction.commit();
+
+        return deleted;
+    }
+    catch (const std::exception &)
+    {
+        return false;
+    }
+}
