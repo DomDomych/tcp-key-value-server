@@ -50,7 +50,7 @@ class LruCache
 class Storage
 {
   public:
-    Storage(std::string connection_string);
+    Storage(std::string connection_string,std::size_t capacity);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
@@ -58,5 +58,7 @@ class Storage
 
   private:
     PostgresStorage database_;
-    //LruCache cache_;
+    LruCache cache_;
+
+    std::mutex mutex_;
 };
