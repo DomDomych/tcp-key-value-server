@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(kv_server LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PQXX REQUIRED libpqxx)
 
 add_executable(kv_server
     main.cpp
@@ -11,16 +13,20 @@ add_executable(kv_server
     src/protocol/parser.cpp
     src/protocol/command_processor.cpp
     src/storage/storage.cpp
+    src/storage/postgres_storage.cpp
 )
 
 target_include_directories(kv_server
     PRIVATE
     include
+    ${PQXX_INCLUDE_DIRS}
 )
+
 
 target_link_libraries(kv_server
     PRIVATE
     Threads::Threads
+    ${PQXX_LIBRARIES}
 )   
 
 target_compile_features(kv_server
@@ -61,6 +67,7 @@ add_executable(kv_tests
     src/protocol/command_processor.cpp
     src/protocol/parser.cpp
     src/storage/storage.cpp
+    src/storage/postgres_storage.cpp
 )
 
 target_link_libraries(kv_tests
