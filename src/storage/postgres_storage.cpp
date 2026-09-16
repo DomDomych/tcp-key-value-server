@@ -50,7 +50,7 @@ bool PostgresStorage::set(std::string_view key,std::string_view value)
 
         return true;
     }
-    catch(const std::exception& e)
+    catch(const std::exception&)
     {
         return false;
     }
