@@ -7,7 +7,13 @@
 TEST(ProcessorTest, GetCommand)
 {
 
-    Storage storage;
+    Storage storage(
+        "host=localhost "
+        "port=5432 "
+        "dbname=kv_server "
+        "user=kv_user "
+        "password=1234 ",100
+    );
     storage.set("key", "value");
 
     Request req{"GET", "key"};
@@ -17,7 +23,13 @@ TEST(ProcessorTest, GetCommand)
 
 TEST(ProcessorTest, SetCommand)
 {
-    Storage storage;
+    Storage storage(
+        "host=localhost "
+        "port=5432 "
+        "dbname=kv_server "
+        "user=kv_user "
+        "password=1234 ",100
+    );
     Request req{"SET", "key", "value"};
 
     EXPECT_EQ(process(req, storage), "OK\n");
@@ -30,7 +42,13 @@ TEST(ProcessorTest, SetCommand)
 
 TEST(ProcessorTest, DelCommand)
 {
-    Storage storage;
+    Storage storage(
+        "host=localhost "
+        "port=5432 "
+        "dbname=kv_server "
+        "user=kv_user "
+        "password=1234 ",100
+    );
     storage.set("key", "value");
 
     Request req{"DEL", "key"};
