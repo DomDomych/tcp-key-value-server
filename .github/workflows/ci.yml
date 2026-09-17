@@ -27,7 +27,8 @@ jobs:
             cmake \
             libboost-all-dev \
             libgtest-dev \
-            python3
+            python3 \
+            libpqxx-dev
 
       - name: Run tests
         run: ./scripts/full_test.sh
