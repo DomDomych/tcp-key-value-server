@@ -20,7 +20,6 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-
 if [[ ! -x "$SERVER" ]]; then
     echo "Error: kv_server not found or not executable:"
     echo "$SERVER"
@@ -48,9 +47,9 @@ TEST_RESULT=$?
 echo
 
 if [[ $TEST_RESULT -eq 0 ]]; then
-    echo "Load test finished successfully"
+    echo "Benchmark finished successfully"
 else
-    echo "Load test failed with code $TEST_RESULT"
+    echo "Benchmark failed with code $TEST_RESULT"
 fi
 
 exit "$TEST_RESULT"
