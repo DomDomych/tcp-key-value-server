@@ -3,9 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(kv_server LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
-find_package(PkgConfig REQUIRED)
-find_package(PostgreSQL REQUIRED)
-pkg_check_modules(PQXX REQUIRED IMPORTED_TARGET libpqxx)
+find_package(libpqxx REQUIRED)
 
 add_executable(kv_server
     main.cpp
@@ -27,8 +25,7 @@ target_include_directories(kv_server
 target_link_libraries(kv_server
     PRIVATE
     Threads::Threads
-    PkgConfig::PQXX
-    PostgreSQL::PostgreSQL
+    pqxx
 )   
 
 target_compile_features(kv_server
@@ -77,8 +74,7 @@ target_link_libraries(kv_tests
     PRIVATE
     GTest::gtest_main
     Threads::Threads
-    PkgConfig::PQXX
-    PostgreSQL::PostgreSQL
+    pqxx
 )
 
 target_include_directories(kv_tests
