@@ -8,6 +8,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: kv_server
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,17 +37,49 @@ jobs:
             libboost-all-dev \
             libgtest-dev \
             libpq-dev \
-            pkg-config
+            postgresql-client \
+            python3
 
-      - name: Install libpqxx
+      - name: Build and install libpqxx
         run: |
-          git clone --depth 1 --branch 7.10.0 https://github.com/jtv/libpqxx.git /tmp/libpqxx
-          cmake -S /tmp/libpqxx -B /tmp/libpqxx/build \
+          git clone --depth 1 --branch 7.10.0 \
+            https://github.com/jtv/libpqxx.git \
+            /tmp/libpqxx
+
+          cmake \
+            -S /tmp/libpqxx \
+            -B /tmp/libpqxx/build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTING=OFF
+            -DBUILD_SHARED_LIBS=ON \
+            -DSKIP_BUILD_TEST=ON
+
           cmake --build /tmp/libpqxx/build -j2
+
           sudo cmake --install /tmp/libpqxx/build
           sudo ldconfig
 
+      - name: Create database schema
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql \
+            -h 127.0.0.1 \
+            -U postgres \
+            -d kv_server \
+            -c "
+              CREATE TABLE IF NOT EXISTS kv_store (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+              );
+            "
+
       - name: Run tests
-        run: ./scripts/full_test.sh
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGDATABASE: kv_server
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: |
+          chmod +x ./scripts/full_test.sh
+          ./scripts/full_test.sh
