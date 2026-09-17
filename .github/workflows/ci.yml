@@ -1,34 +1,21 @@
-name: CI
+- name: Install dependencies
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y \
+      cmake \
+      g++ \
+      git \
+      libboost-all-dev \
+      libgtest-dev \
+      libpq-dev \
+      pkg-config
 
-on:
-  push:
-    branches:
-      - main
-      - dev
-
-  pull_request:
-    branches:
-      - main
-      - dev
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            libboost-all-dev \
-            libgtest-dev \
-            python3 \
-            libpqxx-dev
-
-      - name: Run tests
-        run: ./scripts/full_test.sh
+- name: Install libpqxx
+  run: |
+    git clone --depth 1 --branch 7.10.0 https://github.com/jtv/libpqxx.git /tmp/libpqxx
+    cmake -S /tmp/libpqxx -B /tmp/libpqxx/build \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_TESTING=OFF
+    cmake --build /tmp/libpqxx/build -j2
+    sudo cmake --install /tmp/libpqxx/build
+    sudo ldconfig
