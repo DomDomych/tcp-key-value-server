@@ -2,7 +2,7 @@
 
 An asynchronous TCP key-value server written in C++20 using Boost.Asio.
 
-The server stores key-value pairs in memory and supports multiple concurrent clients.
+The server stores key-value pairs through PostgreSQL,also using LRU-cache
 
 ## Features
 
@@ -150,11 +150,9 @@ shared io_context
         +
 multiple worker threads
         +
-shared in-memory storage
+shared PostgreSQL
+        +
+LRU-cache
         +
 std::shared_mutex
 ```
-
-The server no longer uses a separate thread for every client connection.
-
-Future versions may add persistent storage and further server-side improvements.
