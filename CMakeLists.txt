@@ -4,6 +4,7 @@ project(kv_server LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(PostgreSQL REQUIRED)
 pkg_check_modules(PQXX REQUIRED IMPORTED_TARGET libpqxx)
 
 add_executable(kv_server
@@ -27,6 +28,7 @@ target_link_libraries(kv_server
     PRIVATE
     Threads::Threads
     PkgConfig::PQXX
+    PostgreSQL::PostgreSQL
 )   
 
 target_compile_features(kv_server
@@ -76,6 +78,7 @@ target_link_libraries(kv_tests
     GTest::gtest_main
     Threads::Threads
     PkgConfig::PQXX
+    PostgreSQL::PostgreSQL
 )
 
 target_include_directories(kv_tests
