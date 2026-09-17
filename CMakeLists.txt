@@ -4,7 +4,7 @@ project(kv_server LANGUAGES CXX)
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(PQXX REQUIRED libpqxx)
+pkg_check_modules(PQXX REQUIRED IMPORTED_TARGET libpqxx)
 
 add_executable(kv_server
     main.cpp
@@ -20,14 +20,13 @@ add_executable(kv_server
 target_include_directories(kv_server
     PRIVATE
     include
-    ${PQXX_INCLUDE_DIRS}
 )
 
 
 target_link_libraries(kv_server
     PRIVATE
     Threads::Threads
-    ${PQXX_LIBRARIES}
+    PkgConfig::PQXX
 )   
 
 target_compile_features(kv_server
@@ -75,14 +74,13 @@ add_executable(kv_tests
 target_link_libraries(kv_tests
     PRIVATE
     GTest::gtest_main
-    ${PQXX_LIBRARIES}
-
+    Threads::Threads
+    PkgConfig::PQXX
 )
 
 target_include_directories(kv_tests
     PRIVATE
     include
-    ${PQXX_LIBRARIES}
 )
 
 target_compile_features(kv_tests
