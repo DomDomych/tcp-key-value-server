@@ -18,7 +18,7 @@ std::optional<std::string> PostgresStorage::get(std::string_view key)
 
     pqxx::read_transaction transaction{connection_};
 
-    auto result = transaction.exec("SELECT value FROM kv_store WHERE key = $1", pqxx::params{key});
+    auto result = transaction.exec_params("SELECT value FROM kv_store WHERE key = $1", pqxx::params{key});
 
     if (result.empty())
     {
@@ -36,7 +36,7 @@ bool PostgresStorage::set(std::string_view key, std::string_view value)
     {
         pqxx::work transaction{connection_};
 
-        transaction.exec("INSERT INTO kv_store (key, value)"
+        transaction.exec_params("INSERT INTO kv_store (key, value)"
                          "VALUES ($1, $2) "
                          "ON CONFLICT (key) "
                          "DO UPDATE SET value = EXCLUDED.value",
@@ -60,7 +60,7 @@ bool PostgresStorage::del(std::string_view key)
     {
         pqxx::work transaction{connection_};
 
-        auto result = transaction.exec("DELETE FROM kv_store WHERE key = $1", pqxx::params{key});
+        auto result = transaction.exec_params("DELETE FROM kv_store WHERE key = $1", pqxx::params{key});
 
         const bool deleted = result.affected_rows() != 0;
 
