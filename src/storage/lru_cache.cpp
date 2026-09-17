@@ -1,6 +1,6 @@
 #include <storage/storage.hpp>
 
-LruCache::LruCache(std::size_t capacity):capacity_(capacity){};
+LruCache::LruCache(std::size_t capacity) : capacity_(capacity) {};
 
 std::optional<std::string> LruCache::get(std::string_view key)
 {
@@ -8,12 +8,12 @@ std::optional<std::string> LruCache::get(std::string_view key)
 
     auto it = index_.find(std::string(key));
 
-    if(it == index_.end())
+    if (it == index_.end())
     {
         return std::nullopt;
     }
 
-    items_.splice(items_.begin(),items_,it->second);
+    items_.splice(items_.begin(), items_, it->second);
 
     return it->second->second;
 }
@@ -21,7 +21,8 @@ std::optional<std::string> LruCache::get(std::string_view key)
 void LruCache::put(std::string key, std::string value)
 {
 
-    if(capacity_==0)return;
+    if (capacity_ == 0)
+        return;
     std::lock_guard lock(mutex_);
 
     auto it = index_.find(key);
@@ -41,7 +42,7 @@ void LruCache::put(std::string key, std::string value)
 
     if (items_.size() > capacity_)
     {
-        const std::string& old_key = items_.back().first;
+        const std::string &old_key = items_.back().first;
 
         index_.erase(old_key);
         items_.pop_back();

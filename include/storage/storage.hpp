@@ -2,11 +2,11 @@
 
 #include <mutex>
 #include <optional>
+#include <pqxx/pqxx>
 #include <shared_mutex>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <pqxx/pqxx>
 
 class PostgresStorage
 {
@@ -37,12 +37,10 @@ class LruCache
   private:
     std::size_t capacity_;
 
-    std::list<std::pair<std::string,std::string>> items_;
+    std::list<std::pair<std::string, std::string>> items_;
 
-    std::unordered_map<
-      std::string,
-      std::list<std::pair<std::string,std::string>>::iterator
-    > index_;
+    std::unordered_map<std::string, std::list<std::pair<std::string, std::string>>::iterator>
+        index_;
 
     std::mutex mutex_;
 };
@@ -50,7 +48,7 @@ class LruCache
 class Storage
 {
   public:
-    Storage(std::string connection_string,std::size_t capacity);
+    Storage(std::string connection_string, std::size_t capacity);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);

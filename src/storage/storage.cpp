@@ -1,8 +1,7 @@
 #include <storage/storage.hpp>
 
 Storage::Storage(std::string connection_string, std::size_t cache_capacity)
-    : database_(std::move(connection_string)),
-      cache_(cache_capacity)
+    : database_(std::move(connection_string)), cache_(cache_capacity)
 {
 }
 

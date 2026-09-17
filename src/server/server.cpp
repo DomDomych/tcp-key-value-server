@@ -6,14 +6,12 @@
 using tcp = boost::asio::ip::tcp;
 
 Server::Server(boost::asio::io_context &io, unsigned short port)
-    : acceptor_(io, tcp::endpoint(tcp::v4(), port)),
-    storage_(
-        "host=localhost "
-        "port=5432 "
-        "dbname=kv_server "
-        "user=kv_user "
-        "password=1234 ",100
-    )
+    : acceptor_(io, tcp::endpoint(tcp::v4(), port)), storage_("host=localhost "
+                                                              "port=5432 "
+                                                              "dbname=kv_server "
+                                                              "user=kv_user "
+                                                              "password=1234 ",
+                                                              100)
 {
 }
 
