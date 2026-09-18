@@ -2,17 +2,20 @@
 
 An asynchronous TCP key-value server written in C++20 using Boost.Asio.
 
-The server stores key-value pairs through PostgreSQL,also using LRU-cache
+The server uses PostgreSQL for persistent key-value storage and an in-memory LRU cache to reduce database access for frequently requested values.
 
 ## Features
 
 * TCP networking with Boost.Asio
 * Asynchronous accept, read and write operations
 * Multiple worker threads running a shared `io_context`
-* Shared in-memory storage
-* Thread-safe access using `std::shared_mutex`
+* Persistent storage with PostgreSQL
+* PostgreSQL integration using `libpqxx`
+* In-memory LRU cache
+* Thread-safe shared storage access
 * `SET`, `GET` and `DEL` commands
 * Interactive TCP client
+* GoogleTest-based tests
 * Python load testing
 * CMake build system
 
@@ -36,7 +39,7 @@ DEL language
 
 ## Architecture
 
-The server uses asynchronous Boost.Asio I/O.
+The server uses asynchronous Boost.Asio networking.
 
 Incoming connections are accepted with `async_accept()`.
 Each connected client is represented by a `Session`, which performs asynchronous reads and writes.
@@ -48,27 +51,66 @@ Client 1 ── Session 1 ──┐
 Client 2 ── Session 2 ──┼── io_context ── Worker threads
 Client 3 ── Session 3 ──┘
                             |
-                            └── Shared storage
+                            v
+                         Storage
+                         /     \
+                        /       \
+                 LRU cache    PostgreSQL
+                 (memory)     (persistent)
 ```
 
 Threads are not assigned permanently to individual clients.
 
-While a client is waiting for network I/O, no worker thread is blocked waiting for that connection. When an asynchronous operation completes, one of the threads running `io_context.run()` executes its callback.
+While a client is waiting for network I/O, no worker thread is blocked waiting for that connection. When an asynchronous operation completes, one of the threads running `io_context.run()` executes its completion handler.
 
-All sessions share the same in-memory storage.
+All sessions share the same `Storage` instance.
 
-Access to the storage is protected by `std::shared_mutex`, allowing multiple concurrent readers while writes require exclusive access.
+The storage layer combines an in-memory LRU cache with PostgreSQL. Frequently accessed values can be returned directly from the cache, while cache misses fall back to PostgreSQL.
+
+The cache has a fixed capacity and evicts the least recently used entries when the capacity is reached.
+
+`SET` and `DEL` operations keep the persistent storage and cache state consistent.
+
+Network operations are asynchronous. PostgreSQL operations are currently synchronous and access to the shared database connection is synchronized between worker threads.
+
+## Storage Flow
+
+For a `GET` request:
+
+```text
+GET key
+   |
+   v
+LRU cache
+   |
+   +── HIT ──────────────> return value
+   |
+   └── MISS
+        |
+        v
+    PostgreSQL
+        |
+        v
+    update cache
+        |
+        v
+    return value
+```
+
+PostgreSQL acts as the persistent source of data, while the LRU cache reduces repeated database queries for frequently accessed keys.
 
 ## Build
 
 Requirements:
 
+* Linux
 * C++20 compiler
 * Boost
 * CMake
-* Linux
+* PostgreSQL
+* libpqxx
 * GoogleTest
-* Python3
+* Python 3
 
 Using CMake:
 
@@ -76,6 +118,8 @@ Using CMake:
 cmake -S . -B build
 cmake --build build
 ```
+
+A running PostgreSQL instance and the key-value table are required for database-backed server operations and storage tests.
 
 ## Run
 
@@ -127,32 +171,38 @@ Run the benchmark:
 ./tests/load/run_load_test.sh
 ```
 
-Example result:
+The benchmark reports:
 
 ```text
-Clients:     100
-Commands:    10000
-Time:        0.552169 seconds
-Throughput:  18110.40 commands/sec
-Errors:      0
+Clients:     ...
+Commands:    ...
+Time:        ... seconds
+Throughput:  ... commands/sec
+Errors:      ...
 ```
 
-The same workload can be reused to compare different server implementations.
+The same workload can be reused to measure the effect of architectural changes and compare different server implementations.
 
 ## Current Status
 
 Current architecture:
 
 ```text
-asynchronous Boost.Asio
+asynchronous Boost.Asio networking
         +
 shared io_context
         +
 multiple worker threads
         +
-shared PostgreSQL
+shared Storage layer
         +
-LRU-cache
+LRU in-memory cache
         +
-std::shared_mutex
+persistent PostgreSQL storage
+        +
+thread-safe access
 ```
+
+The networking layer is asynchronous and can handle multiple client connections concurrently without dedicating one thread to each connection.
+
+The storage layer provides persistent PostgreSQL-backed data while using an LRU cache to accelerate repeated reads.
