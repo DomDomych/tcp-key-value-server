@@ -42,11 +42,11 @@ jobs:
 
       - name: Create database schema
         env:
-          PGPASSWORD: postgres
+          PGPASSWORD: 1234
         run: |
           psql \
             -h 127.0.0.1 \
-            -U postgres \
+            -U kv_user \
             -d kv_server \
             -c "
               CREATE TABLE IF NOT EXISTS kv_store (
@@ -60,8 +60,8 @@ jobs:
           PGHOST: 127.0.0.1
           PGPORT: 5432
           PGDATABASE: kv_server
-          PGUSER: postgres
-          PGPASSWORD: postgres
+          PGUSER: kv_user
+          PGPASSWORD: 1234
         run: |
           chmod +x ./scripts/full_test.sh
           ./scripts/full_test.sh
