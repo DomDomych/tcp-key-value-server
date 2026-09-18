@@ -11,14 +11,17 @@ jobs:
     services:
       postgres:
         image: postgres:16
+
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: kv_user
+          POSTGRES_PASSWORD: 1234
           POSTGRES_DB: kv_server
+
         ports:
           - 5432:5432
+
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U kv_user -d kv_server"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -30,6 +33,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
+
           sudo apt-get install -y \
             cmake \
             g++ \
@@ -45,7 +49,8 @@ jobs:
           PGPASSWORD: 1234
         run: |
           psql \
-            -h 127.0.0.1 \
+            -h localhost \
+            -p 5432 \
             -U kv_user \
             -d kv_server \
             -c "
@@ -56,12 +61,6 @@ jobs:
             "
 
       - name: Run tests
-        env:
-          PGHOST: 127.0.0.1
-          PGPORT: 5432
-          PGDATABASE: kv_server
-          PGUSER: kv_user
-          PGPASSWORD: 1234
         run: |
           chmod +x ./scripts/full_test.sh
           ./scripts/full_test.sh
