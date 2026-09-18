@@ -2,8 +2,22 @@ cmake_minimum_required(VERSION 3.16)
 
 project(kv_server LANGUAGES CXX)
 
+include(FetchContent)
+
 find_package(Threads REQUIRED)
-find_package(libpqxx REQUIRED)
+find_package(GTest REQUIRED)
+
+set(SKIP_BUILD_TEST ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    libpqxx
+    GIT_REPOSITORY https://github.com/jtv/libpqxx.git
+    GIT_TAG 7.10.1
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(libpqxx)
+
 
 add_executable(kv_server
     main.cpp
@@ -21,12 +35,11 @@ target_include_directories(kv_server
     include
 )
 
-
 target_link_libraries(kv_server
     PRIVATE
     Threads::Threads
     pqxx
-)   
+)
 
 target_compile_features(kv_server
     PRIVATE
@@ -39,6 +52,7 @@ target_compile_options(kv_server
     -Wextra
     -Wpedantic
 )
+
 
 add_executable(kv_client
     src/client/client.cpp
@@ -56,7 +70,6 @@ target_compile_options(kv_client
     -Wpedantic
 )
 
-find_package(GTest REQUIRED)
 
 enable_testing()
 
@@ -70,16 +83,16 @@ add_executable(kv_tests
     src/storage/lru_cache.cpp
 )
 
+target_include_directories(kv_tests
+    PRIVATE
+    include
+)
+
 target_link_libraries(kv_tests
     PRIVATE
     GTest::gtest_main
     Threads::Threads
     pqxx
-)
-
-target_include_directories(kv_tests
-    PRIVATE
-    include
 )
 
 target_compile_features(kv_tests
@@ -95,4 +108,5 @@ target_compile_options(kv_tests
 )
 
 include(GoogleTest)
+
 gtest_discover_tests(kv_tests)
