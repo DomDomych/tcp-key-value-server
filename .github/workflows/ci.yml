@@ -58,6 +58,14 @@ jobs:
                 value TEXT NOT NULL
               );
             "
+      - name: Configure project
+        run: |
+          cmake \
+            -S . \
+            -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=ON
+            
       - name: Build project
         run: |
           cmake --build build --parallel
