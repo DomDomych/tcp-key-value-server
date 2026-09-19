@@ -37,7 +37,6 @@ jobs:
           sudo apt-get install -y \
             cmake \
             g++ \
-            git \
             libboost-all-dev \
             libgtest-dev \
             libpq-dev \
@@ -62,5 +61,5 @@ jobs:
 
       - name: Run tests
         run: |
-          chmod +x ./scripts/full_test.sh
-          ./scripts/full_test.sh
+          chmod +x ./scripts/run_tests.sh
+          ./scripts/run_tests.sh
