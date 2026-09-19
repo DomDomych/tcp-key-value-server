@@ -58,7 +58,10 @@ jobs:
                 value TEXT NOT NULL
               );
             "
-
+      - name: Build project
+        run: |
+          cmake --build build --parallel
+        
       - name: Run tests
         run: |
           chmod +x ./scripts/run_tests.sh
