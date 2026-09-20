@@ -8,14 +8,12 @@ using tcp = boost::asio::ip::tcp;
 
 int main()
 {
-    const char* host_env = std::getenv("SERVER_HOST");
-    const char* port_env = std::getenv("SERVER_PORT");
+    const char *host_env = std::getenv("SERVER_HOST");
+    const char *port_env = std::getenv("SERVER_PORT");
 
-    const std::string host =
-        host_env != nullptr ? host_env : "127.0.0.1";
+    const std::string host = host_env != nullptr ? host_env : "127.0.0.1";
 
-    const std::string port =
-        port_env != nullptr ? port_env : "8080";
+    const std::string port = port_env != nullptr ? port_env : "8080";
 
     boost::asio::io_context io;
 
@@ -28,8 +26,7 @@ int main()
 
     if (ec)
     {
-        std::cerr << "Address resolution failed: "
-                  << ec.message() << '\n';
+        std::cerr << "Address resolution failed: " << ec.message() << '\n';
         return 1;
     }
 
@@ -37,13 +34,11 @@ int main()
 
     if (ec)
     {
-        std::cerr << "Connection failed: "
-                  << ec.message() << '\n';
+        std::cerr << "Connection failed: " << ec.message() << '\n';
         return 1;
     }
 
-    std::cout << "Connected to "
-              << host << ':' << port << '\n';
+    std::cout << "Connected to " << host << ':' << port << '\n';
 
     std::string request;
 
@@ -63,30 +58,21 @@ int main()
 
         request += '\n';
 
-        boost::asio::write(
-            socket,
-            boost::asio::buffer(request),
-            ec);
+        boost::asio::write(socket, boost::asio::buffer(request), ec);
 
         if (ec)
         {
-            std::cerr << "Write failed: "
-                      << ec.message() << '\n';
+            std::cerr << "Write failed: " << ec.message() << '\n';
             return 1;
         }
 
         std::string response;
 
-        boost::asio::read_until(
-            socket,
-            boost::asio::dynamic_buffer(response),
-            '\n',
-            ec);
+        boost::asio::read_until(socket, boost::asio::dynamic_buffer(response), '\n', ec);
 
         if (ec)
         {
-            std::cerr << "Read failed: "
-                      << ec.message() << '\n';
+            std::cerr << "Read failed: " << ec.message() << '\n';
             return 1;
         }
 
