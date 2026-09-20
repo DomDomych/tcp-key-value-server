@@ -166,8 +166,9 @@ Requirements:
 * C++20 compiler
 * Boost
 * CMake
+* Git
 * PostgreSQL
-* libpqxx
+* PostgreSQL development files (`libpq-dev`)
 * GoogleTest
 * Python 3
 
@@ -194,7 +195,7 @@ Start the client in another terminal:
 ./scripts/run_client.sh
 ```
 
-By default, the server listens on:
+By default, the server listens on port 8080. The local client connects to
 
 ```text
 127.0.0.1:8080
@@ -234,7 +235,6 @@ Example:
 
 ```bash
 ./benchmarks/run_full.sh \
-    benchmarks/scenario_for_full.txt \
     100 \
     --get 80 \
     --set 15 \
@@ -257,7 +257,7 @@ The number of commands per client, keyspace size, random seed, warmup and cleanu
 benchmarks/scenario_for_full.txt
 ```
 
-The benchmark populates the keyspace, performs a warmup stage, executes the configured workload and cleans up benchmark keys.
+The benchmark populates the keyspace, performs a warmup stage, executes the configured workload and optionally cleans up benchmark keys.
 
 Reported metrics include:
 
