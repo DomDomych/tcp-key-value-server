@@ -2,16 +2,41 @@
 #include "session/session.hpp"
 #include <boost/asio.hpp>
 #include <thread>
+#include <cstdlib>
+#include <string>
+
 
 using tcp = boost::asio::ip::tcp;
 
+
+namespace
+{
+
+std::string get_env(const char* name, const char* default_value)
+{
+    const char* value = std::getenv(name);
+
+    if (value != nullptr)
+    {
+        return value;
+    }
+
+    return default_value;
+}
+
+std::string make_database_connection_string()
+{
+    return "host=" + get_env("DB_HOST", "localhost") + " "
+           "port=" + get_env("DB_PORT", "5432") + " "
+           "dbname=" + get_env("DB_NAME", "kv_server") + " "
+           "user=" + get_env("DB_USER", "kv_user") + " "
+           "password=" + get_env("DB_PASSWORD", "1234");
+}
+
+}
+
 Server::Server(boost::asio::io_context &io, unsigned short port)
-    : acceptor_(io, tcp::endpoint(tcp::v4(), port)), storage_("host=localhost "
-                                                              "port=5432 "
-                                                              "dbname=kv_server "
-                                                              "user=kv_user "
-                                                              "password=1234 ",
-                                                              100)
+    : acceptor_(io, tcp::endpoint(tcp::v4(), port)), storage_(make_database_connection_string(),100)
 {
 }
 
