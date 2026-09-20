@@ -18,6 +18,8 @@ The server uses PostgreSQL for persistent key-value storage and an in-memory LRU
 * GoogleTest-based tests
 * Python load testing
 * CMake build system
+* GitHub Actions CI
+* Docker and Docker Compose support
 
 ## Protocol
 
@@ -71,7 +73,7 @@ The cache has a fixed capacity and evicts the least recently used entries when t
 
 `SET` and `DEL` operations keep the persistent storage and cache state consistent.
 
-Network operations are asynchronous. PostgreSQL operations are currently synchronous and access to the shared database connection is synchronized between worker threads.
+Network operations are asynchronous. PostgreSQL operations are currently synchronous, and access to the shared database connection is synchronized between worker threads.
 
 ## Storage Flow
 
@@ -99,7 +101,64 @@ LRU cache
 
 PostgreSQL acts as the persistent source of data, while the LRU cache reduces repeated database queries for frequently accessed keys.
 
-## Build
+## Docker
+
+Docker is the recommended way to run the complete project.
+
+Requirements:
+
+* Docker
+* Docker Compose
+
+Create the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Build and start the server with PostgreSQL:
+
+```bash
+docker compose up -d --build
+```
+
+Start an interactive client:
+
+```bash
+docker compose --profile tools run --rm client
+```
+
+Multiple clients can be started simultaneously by running the same command in different terminals. Each invocation creates a separate TCP connection.
+
+The server is also available from the host at:
+
+```text
+127.0.0.1:8080
+```
+
+Check the running containers:
+
+```bash
+docker compose ps
+```
+
+View server logs:
+
+```bash
+docker compose logs -f server
+```
+
+Stop the project:
+
+```bash
+docker compose down
+```
+
+PostgreSQL data is stored in a Docker volume and remains available after the containers are stopped.
+
+The `.env` file contains local configuration and is not committed. Use `.env.example` as a template.
+
+## Native Build
 
 Requirements:
 
@@ -116,12 +175,12 @@ Using CMake:
 
 ```bash
 cmake -S . -B build
-cmake --build build
+cmake --build build --parallel
 ```
 
-A running PostgreSQL instance and the key-value table are required for database-backed server operations and storage tests.
+A running PostgreSQL instance and the `kv_store` table are required for database-backed server operations and storage tests.
 
-## Run
+## Native Run
 
 Start the server:
 
@@ -135,7 +194,7 @@ Start the client in another terminal:
 ./scripts/run_client.sh
 ```
 
-The server listens on:
+By default, the server listens on:
 
 ```text
 127.0.0.1:8080
@@ -143,42 +202,75 @@ The server listens on:
 
 Type `exit` to close the client.
 
-## Load Test
+## Tests
 
-The project includes a Python load test for running multiple TCP clients concurrently.
-
-Clients and their commands are described in `scenario.txt`:
-
-```text
-ID: 1
-
-SET key1 value1
-GET key1
-DEL key1
-
-ID: 2
-
-SET key2 value2
-GET key2
-DEL key2
-```
-
-Each `ID` represents a separate client connection.
-
-Run the benchmark:
+Configure and build the project with testing enabled:
 
 ```bash
-./tests/load/run_load_test.sh
+cmake \
+    -S . \
+    -B build \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DBUILD_TESTING=ON
+
+cmake --build build --parallel
 ```
 
-The benchmark reports:
+Run the tests:
+
+```bash
+./scripts/run_tests.sh
+```
+
+The test suite requires a running PostgreSQL instance with the `kv_store` table.
+
+GitHub Actions automatically builds the project and runs the tests against PostgreSQL 16 on every push and pull request.
+
+## Benchmark
+
+The project includes a Python benchmark that creates multiple concurrent clients and generates a configurable mix of `GET`, `SET` and `DEL` requests.
+
+Example:
+
+```bash
+./benchmarks/run_full.sh \
+    benchmarks/scenario_for_full.txt \
+    100 \
+    --get 80 \
+    --set 15 \
+    --del 5
+```
+
+This starts 100 clients with the following request distribution:
 
 ```text
-Clients:     ...
-Commands:    ...
-Time:        ... seconds
-Throughput:  ... commands/sec
-Errors:      ...
+GET 80%
+SET 15%
+DEL 5%
+```
+
+The percentages must add up to `100`.
+
+The number of commands per client, keyspace size, random seed, warmup and cleanup settings are configured in:
+
+```text
+benchmarks/scenario_for_full.txt
+```
+
+The benchmark populates the keyspace, performs a warmup stage, executes the configured workload and cleans up benchmark keys.
+
+Reported metrics include:
+
+```text
+Successful commands
+Execution time
+Throughput
+GET / SET / DEL counts
+Average latency
+p50 latency
+p95 latency
+p99 latency
+Maximum latency
 ```
 
 The same workload can be reused to measure the effect of architectural changes and compare different server implementations.
@@ -206,3 +298,5 @@ thread-safe access
 The networking layer is asynchronous and can handle multiple client connections concurrently without dedicating one thread to each connection.
 
 The storage layer provides persistent PostgreSQL-backed data while using an LRU cache to accelerate repeated reads.
+
+PostgreSQL operations are synchronous, and access to the shared database connection is synchronized between worker threads.
