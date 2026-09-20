@@ -1,0 +1,13 @@
+.git
+.github
+
+build
+output
+
+.env
+
+.vscode
+.idea
+
+*.log
+baseline_summary.txt
