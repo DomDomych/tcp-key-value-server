@@ -3,20 +3,21 @@
 #include <stdexcept>
 #include <utility>
 
-PostgresStorage::PostgresStorage(std::string connection_string)
-    : connection_(std::move(connection_string))
+PostgresStorage::PostgresStorage(std::string connection_string,std::size_t pool_size)
+    :connection_pool_(std::move(connection_string),pool_size)
 {
-    if (!connection_.is_open())
+    if (pool_size == 0)
     {
-        throw std::runtime_error("Failed to connect to PostgresSQL");
+        throw std::invalid_argument("Connection pool size must be greater than zero");
     }
 }
 
 std::optional<std::string> PostgresStorage::get(std::string_view key)
 {
-    std::lock_guard lock{mutex_};
 
-    pqxx::read_transaction transaction{connection_};
+    auto connection = connection_pool_.acquire();
+
+    pqxx::read_transaction transaction{connection.get()};
 
     auto result =
         transaction.exec("SELECT value FROM kv_store WHERE key = $1", pqxx::params{key});
@@ -31,11 +32,13 @@ std::optional<std::string> PostgresStorage::get(std::string_view key)
 
 bool PostgresStorage::set(std::string_view key, std::string_view value)
 {
-    std::lock_guard lock{mutex_};
 
     try
     {
-        pqxx::work transaction{connection_};
+
+        auto connection = connection_pool_.acquire();
+
+        pqxx::work transaction{connection.get()};
 
         transaction.exec("INSERT INTO kv_store (key, value)"
                                 "VALUES ($1, $2) "
@@ -55,11 +58,12 @@ bool PostgresStorage::set(std::string_view key, std::string_view value)
 
 bool PostgresStorage::del(std::string_view key)
 {
-    std::lock_guard lock{mutex_};
 
     try
     {
-        pqxx::work transaction{connection_};
+
+        auto connection = connection_pool_.acquire();
+        pqxx::work transaction{connection.get()};
 
         auto result =
             transaction.exec("DELETE FROM kv_store WHERE key = $1", pqxx::params{key});

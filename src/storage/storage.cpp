@@ -1,13 +1,13 @@
 #include <storage/storage.hpp>
 
-Storage::Storage(std::string connection_string, std::size_t cache_capacity)
-    : database_(std::move(connection_string)), cache_(cache_capacity)
+Storage::Storage(std::string connection_string, std::size_t cache_capacity,std::size_t pool_size)
+    : database_(std::move(connection_string),pool_size), cache_(cache_capacity)
 {
 }
 
 std::optional<std::string> Storage::get(std::string_view key)
 {
-    std::lock_guard lock(mutex_);
+    std::shared_lock lock(mutex_);
 
     if (auto value = cache_.get(key))
     {
@@ -26,7 +26,7 @@ std::optional<std::string> Storage::get(std::string_view key)
 
 bool Storage::set(std::string_view key, std::string_view value)
 {
-    std::lock_guard lock(mutex_);
+    std::unique_lock lock(mutex_);
 
     if (!database_.set(key, value))
     {
@@ -40,7 +40,7 @@ bool Storage::set(std::string_view key, std::string_view value)
 
 bool Storage::del(std::string_view key)
 {
-    std::lock_guard lock(mutex_);
+    std::unique_lock lock(mutex_);
 
     if (!database_.del(key))
     {

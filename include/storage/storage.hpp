@@ -7,18 +7,19 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include "connection_pool.hpp"
 
 class PostgresStorage
 {
   public:
-    PostgresStorage(std::string connection_string);
+    PostgresStorage(std::string connection_string,std::size_t pool_size);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
     bool del(std::string_view key);
 
   private:
-    pqxx::connection connection_;
+    ConnectionPool connection_pool_;
     std::mutex mutex_;
 };
 
@@ -48,7 +49,7 @@ class LruCache
 class Storage
 {
   public:
-    Storage(std::string connection_string, std::size_t capacity);
+    Storage(std::string connection_string, std::size_t capacity,std::size_t size);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
@@ -58,5 +59,5 @@ class Storage
     PostgresStorage database_;
     LruCache cache_;
 
-    std::mutex mutex_;
+    std::shared_mutex mutex_;
 };
