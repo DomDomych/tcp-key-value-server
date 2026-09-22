@@ -43,7 +43,7 @@ std::string make_database_connection_string()
 
 Server::Server(boost::asio::io_context &io, unsigned short port)
     : acceptor_(io, tcp::endpoint(tcp::v4(), port)),
-      storage_(make_database_connection_string(), 100)
+      storage_(make_database_connection_string(), 100,4)
 {
 }
 

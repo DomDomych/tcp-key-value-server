@@ -19,7 +19,7 @@ std::string process(const Request &req, Storage &storage)
         {
             return "NO VALUE\n";
         }
-        if(storage.set(req.key, req.value)==false)
+        if (storage.set(req.key, req.value) == false)
         {
             return "ERROR\n";
         }

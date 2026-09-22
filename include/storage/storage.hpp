@@ -1,5 +1,6 @@
 #pragma once
 
+#include "connection_pool.hpp"
 #include <mutex>
 #include <optional>
 #include <pqxx/pqxx>
@@ -7,12 +8,11 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include "connection_pool.hpp"
 
 class PostgresStorage
 {
   public:
-    PostgresStorage(std::string connection_string,std::size_t pool_size);
+    PostgresStorage(std::string connection_string, std::size_t pool_size);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
@@ -49,7 +49,7 @@ class LruCache
 class Storage
 {
   public:
-    Storage(std::string connection_string, std::size_t capacity,std::size_t size);
+    Storage(std::string connection_string, std::size_t capacity, std::size_t size);
 
     std::optional<std::string> get(std::string_view key);
     bool set(std::string_view key, std::string_view value);
