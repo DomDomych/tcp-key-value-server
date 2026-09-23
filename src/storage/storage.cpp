@@ -5,9 +5,19 @@ Storage::Storage(std::string connection_string, std::size_t cache_capacity, std:
 {
 }
 
+std::shared_mutex& Storage::mutex_for(std::string_view key)
+{
+    std::size_t hash = std::hash<std::string_view>{}(key);
+
+    return mutexes_[hash%64];
+}
+
 std::optional<std::string> Storage::get(std::string_view key)
 {
-    std::shared_lock lock(mutex_);
+
+    auto& mutex = mutex_for(key);
+
+    std::shared_lock lock(mutex);
 
     if (auto value = cache_.get(key))
     {
@@ -26,7 +36,9 @@ std::optional<std::string> Storage::get(std::string_view key)
 
 bool Storage::set(std::string_view key, std::string_view value)
 {
-    std::unique_lock lock(mutex_);
+    auto& mutex = mutex_for(key);
+
+    std::unique_lock lock(mutex);
 
     if (!database_.set(key, value))
     {
@@ -40,7 +52,9 @@ bool Storage::set(std::string_view key, std::string_view value)
 
 bool Storage::del(std::string_view key)
 {
-    std::unique_lock lock(mutex_);
+    auto& mutex = mutex_for(key);
+
+    std::unique_lock lock(mutex);
 
     if (!database_.del(key))
     {

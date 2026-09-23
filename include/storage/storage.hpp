@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <array>
 
 class PostgresStorage
 {
@@ -55,9 +56,12 @@ class Storage
     bool set(std::string_view key, std::string_view value);
     bool del(std::string_view key);
 
+
   private:
     PostgresStorage database_;
     LruCache cache_;
 
-    std::shared_mutex mutex_;
+    std::array<std::shared_mutex,64> mutexes_;
+
+    std::shared_mutex& mutex_for(std::string_view key);
 };
