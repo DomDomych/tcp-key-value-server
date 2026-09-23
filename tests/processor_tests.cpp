@@ -12,8 +12,7 @@ TEST(ProcessorTest, GetCommand)
                     "dbname=kv_server "
                     "user=kv_user "
                     "password=1234 ",
-                    100,
-                    4);
+                    100, 4);
     storage.set("key", "value");
 
     Request req{"GET", "key"};
@@ -28,8 +27,7 @@ TEST(ProcessorTest, SetCommand)
                     "dbname=kv_server "
                     "user=kv_user "
                     "password=1234 ",
-                    100,
-                    4);
+                    100, 4);
     Request req{"SET", "key", "value"};
 
     EXPECT_EQ(process(req, storage), "OK\n");
@@ -47,8 +45,7 @@ TEST(ProcessorTest, DelCommand)
                     "dbname=kv_server "
                     "user=kv_user "
                     "password=1234 ",
-                    100,
-                    4);
+                    100, 4);
     storage.set("key", "value");
 
     Request req{"DEL", "key"};

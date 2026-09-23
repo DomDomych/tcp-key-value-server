@@ -1,7 +1,7 @@
 #include "server/server.hpp"
 
-#include <boost/asio.hpp>
 #include <algorithm>
+#include <boost/asio.hpp>
 #include <csignal>
 #include <iostream>
 #include <thread>
@@ -24,14 +24,12 @@ int main()
                 return;
             }
 
-            std::cout << "Received signal " << signal_number
-                      << ". Shutting down...\n";
+            std::cout << "Received signal " << signal_number << ". Shutting down...\n";
 
             server.stop();
         });
 
-    const std::size_t thread_count =
-        std::max(1u, std::thread::hardware_concurrency());
+    const std::size_t thread_count = std::max(1u, std::thread::hardware_concurrency());
 
     std::vector<std::thread> workers;
     workers.reserve(thread_count);
