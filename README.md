@@ -11,12 +11,14 @@ The server uses PostgreSQL for persistent key-value storage and an in-memory LRU
 * Multiple worker threads running a shared `io_context`
 * Persistent storage with PostgreSQL
 * PostgreSQL integration using `libpqxx`
+* PostgreSQL connection pool
 * In-memory LRU cache
 * Thread-safe shared storage access
 * `SET`, `GET` and `DEL` commands
 * Interactive TCP client
-* GoogleTest-based tests
-* Python load testing
+* C++ unit tests with GoogleTest
+* Go integration tests
+* Go load testing
 * CMake build system
 * GitHub Actions CI
 * Docker and Docker Compose support
@@ -73,7 +75,7 @@ The cache has a fixed capacity and evicts the least recently used entries when t
 
 `SET` and `DEL` operations keep the persistent storage and cache state consistent.
 
-Network operations are asynchronous. PostgreSQL operations are currently synchronous, and access to the shared database connection is synchronized between worker threads.
+Network operations are asynchronous. PostgreSQL operations are currently synchronous and use a connection pool shared between worker threads.
 
 ## Storage Flow
 
@@ -170,7 +172,7 @@ Requirements:
 * PostgreSQL
 * PostgreSQL development files (`libpq-dev`)
 * GoogleTest
-* Python 3
+* Go
 
 Using CMake:
 
@@ -217,19 +219,21 @@ cmake \
 cmake --build build --parallel
 ```
 
-Run the tests:
+Run all tests:
 
 ```bash
 ./scripts/run_tests.sh
 ```
 
-The test suite requires a running PostgreSQL instance with the `kv_store` table.
+The test suite includes C++ unit tests and Go integration tests that communicate with the running server over TCP.
+
+A running PostgreSQL instance with the `kv_store` table is required.
 
 GitHub Actions automatically builds the project and runs the tests against PostgreSQL 16 on every push and pull request.
 
 ## Benchmark
 
-The project includes a Python benchmark that creates multiple concurrent clients and generates a configurable mix of `GET`, `SET` and `DEL` requests.
+The project includes a Go benchmark that creates multiple concurrent clients and generates a configurable mix of `GET`, `SET` and `DEL` requests.
 
 Example:
 
@@ -290,6 +294,8 @@ shared Storage layer
         +
 LRU in-memory cache
         +
+PostgreSQL connection pool
+        +
 persistent PostgreSQL storage
         +
 thread-safe access
@@ -299,4 +305,4 @@ The networking layer is asynchronous and can handle multiple client connections 
 
 The storage layer provides persistent PostgreSQL-backed data while using an LRU cache to accelerate repeated reads.
 
-PostgreSQL operations are synchronous, and access to the shared database connection is synchronized between worker threads.
+PostgreSQL operations are synchronous and use connections acquired from a shared connection pool.
