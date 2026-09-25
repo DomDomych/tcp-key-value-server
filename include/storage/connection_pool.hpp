@@ -1,44 +1,49 @@
-#include <condition_variable>
+#include <vector>
+#include <pqxx/pqxx>
 #include <memory>
 #include <mutex>
-#include <pqxx/pqxx>
-#include <vector>
+#include <condition_variable>
+#include <string>
 
 class ConnectionPool;
 
 class ConnectionGuard
 {
-  public:
-    ConnectionGuard(ConnectionPool &pool, std::unique_ptr<pqxx::connection> connection);
+    public:
+        ConnectionGuard(
+            ConnectionPool& pool,
+            std::unique_ptr<pqxx::connection> connection);
 
-    ~ConnectionGuard();
+        ~ConnectionGuard();
 
-    ConnectionGuard(const ConnectionGuard &) = delete;
-    ConnectionGuard &operator=(const ConnectionGuard &) = delete;
+        ConnectionGuard(const ConnectionGuard&)=delete;
+        ConnectionGuard& operator=(const ConnectionGuard&)=delete;
 
-    ConnectionGuard(ConnectionGuard &&other) noexcept;
+        ConnectionGuard(ConnectionGuard&& other) noexcept;
 
-    pqxx::connection &get();
+        pqxx::connection& get();
 
-  private:
-    ConnectionPool &pool_;
-    std::unique_ptr<pqxx::connection> connection_;
+    private:
+        ConnectionPool& pool_;
+        std::unique_ptr<pqxx::connection> connection_;
 };
 
 class ConnectionPool
 {
-  public:
-    ConnectionPool(const std::string &connection_string, std::size_t size);
+    public:
+        ConnectionPool(
+            const std::string& connection_string,
+            std::size_t size);
+        
+        ConnectionGuard acquire();
 
-    ConnectionGuard acquire();
+    private:
+        friend class ConnectionGuard;
 
-  private:
-    friend class ConnectionGuard;
+        void release(std::unique_ptr<pqxx::connection> connection);
 
-    void release(std::unique_ptr<pqxx::connection> connection);
+        std::vector<std::unique_ptr<pqxx::connection>> available_;
 
-    std::vector<std::unique_ptr<pqxx::connection>> available_;
-
-    std::mutex mutex_;
-    std::condition_variable cv_;
+        std::mutex mutex_;
+        std::condition_variable cv_;
 };
