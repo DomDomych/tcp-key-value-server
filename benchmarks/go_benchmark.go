@@ -7,6 +7,9 @@ import (
 	"math/rand"
 	"net"
 	"sync"
+	"time"
+	"math"
+	"sort"
 )
 
 type ClientStats struct {
@@ -14,12 +17,23 @@ type ClientStats struct {
 	Set 	int
 	Del 	int
 	Successful 	int 
+	Latencies []time.Duration
 }
 
 type ClientResult struct {
 	ClientID int
 	Stats ClientStats
 	Err error
+}
+
+func percentile(latencies []time.Duration, p float64) time.Duration {
+	if len(latencies) == 0 {
+		return 0
+	}
+
+	index := int(math.Ceil(p*float64(len(latencies)))) - 1
+
+	return latencies[index]
 }
 
 func sendCommand(conn net.Conn, reader *bufio.Reader, command string) (string, error) {
@@ -108,11 +122,18 @@ func runClient(
 			command = fmt.Sprintf("DEL %s\n", key)
 		}
 
+		requestStart := time.Now()
+
 		_, err = sendCommand(conn, reader, command)
+
+		latency := time.Since(requestStart)
 
 		if err != nil {
 			return stats,err
 		}
+
+		stats.Latencies = append(stats.Latencies,latency)
+
 
 		if operation < getPercent{
 			stats.Get++
@@ -192,6 +213,8 @@ func main() {
 
 	fmt.Println("Starting clients...")
 
+	start := time.Now()
+
 	var wg sync.WaitGroup
 
 	results := make(chan ClientResult,*clients)
@@ -223,6 +246,10 @@ func main() {
 
 	wg.Wait()
 
+	elapsed := time.Since(start)
+
+	
+
 	total := ClientStats{}
 
 	for i:=0; i<*clients;i++ {
@@ -238,7 +265,30 @@ func main() {
 		total.Del+=result.Stats.Del
 		total.Successful+=result.Stats.Successful
 
+		total.Latencies = append(total.Latencies,result.Stats.Latencies...)
+
 	}
+
+	sort.Slice(total.Latencies, func(i, j int) bool {
+		return total.Latencies[i] < total.Latencies[j]
+	})
+
+	p50 := percentile(total.Latencies, 0.50)
+	p95 := percentile(total.Latencies, 0.95)
+	p99 := percentile(total.Latencies, 0.99)
+	var latencySum time.Duration
+
+	for _, latency := range total.Latencies {
+		latencySum += latency
+	}
+
+	var avgLatency time.Duration
+
+	if len(total.Latencies) > 0 {
+		avgLatency = latencySum / time.Duration(len(total.Latencies))
+	}
+
+	throughput := float64(total.Successful) / elapsed.Seconds()
 
 	expected := *clients * *requests
 	fmt.Println()
@@ -252,5 +302,26 @@ func main() {
 	fmt.Println("GET:", total.Get)
 	fmt.Println("SET:", total.Set)
 	fmt.Println("DEL:", total.Del)
+	fmt.Printf("Time: %.6f seconds\n", elapsed.Seconds())
+	fmt.Printf("Throughput: %.2f commands/sec\n", throughput)
+	fmt.Printf(
+		"Latency avg: %.3f ms\n",
+		float64(avgLatency.Microseconds())/1000.0,
+	)
+
+	fmt.Printf(
+		"Latency p50: %.3f ms\n",
+		float64(p50.Microseconds())/1000.0,
+	)
+
+	fmt.Printf(
+		"Latency p95: %.3f ms\n",
+		float64(p95.Microseconds())/1000.0,
+	)
+
+	fmt.Printf(
+		"Latency p99: %.3f ms\n",
+		float64(p99.Microseconds())/1000.0,
+)
 
 }
