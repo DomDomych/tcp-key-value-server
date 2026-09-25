@@ -42,7 +42,7 @@ fi
 
 echo
 echo "=== Go integration tests ==="
-go test ./tests/integration/... -v
+go test ./tests/integration_tests/... -v
 
 echo
-echo "=== All tests passed ==="
+echo "=== All tests passed ===" 
