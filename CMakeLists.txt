@@ -75,8 +75,8 @@ target_compile_options(kv_client
 enable_testing()
 
 add_executable(kv_tests
-    tests/parser_tests.cpp
-    tests/processor_tests.cpp
+    tests/unit_tests/parser_tests.cpp
+    tests/unit_tests/processor_tests.cpp
     src/protocol/command_processor.cpp
     src/protocol/parser.cpp
     src/storage/storage.cpp
