@@ -9,6 +9,19 @@ import (
 	"sync"
 )
 
+type ClientStats struct {
+	Get 	int
+	Set 	int
+	Del 	int
+	Successful 	int 
+}
+
+type ClientResult struct {
+	ClientID int
+	Stats ClientStats
+	Err error
+}
+
 func sendCommand(conn net.Conn, reader *bufio.Reader, command string) (string, error) {
 	_, err := conn.Write([]byte(command))
 
@@ -65,11 +78,13 @@ func runClient(
 	delPercent int,
 	keyspace int,
 	seed int64,
-) error {
+) (ClientStats,error) {
+
+	stats := ClientStats{}
 	conn, err := net.Dial("tcp", address)
 
 	if err != nil {
-		return err
+		return stats,err
 	}
 
 	defer conn.Close()
@@ -78,9 +93,6 @@ func runClient(
 
 	rng := rand.New(rand.NewSource(seed))
 
-	getCount := 0
-	setCount := 0
-	delCount := 0
 	for i := 0; i < requests; i++ {
 		operation := rng.Intn(100)
 
@@ -90,27 +102,31 @@ func runClient(
 
 		if operation < getPercent {
 			command = fmt.Sprintf("GET %s\n", key)
-			getCount++
 		} else if operation < getPercent+setPercent {
 			command = fmt.Sprintf("SET %s value\n", key)
-			setCount++
 		} else {
 			command = fmt.Sprintf("DEL %s\n", key)
-			delCount++
 		}
 
 		_, err = sendCommand(conn, reader, command)
 
 		if err != nil {
-			return err
+			return stats,err
 		}
+
+		if operation < getPercent{
+			stats.Get++
+		} else if operation < getPercent+setPercent{
+			stats.Set++
+		} else {
+			stats.Del++
+		}
+
+		stats.Successful++
 	}
 
-	fmt.Println("GET:", getCount)
-	fmt.Println("SET:", setCount)
-	fmt.Println("DEL:", delCount)
 
-	return nil
+	return stats,nil
 }
 
 func main() {
@@ -178,13 +194,15 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	results := make(chan ClientResult,*clients)
+
 	wg.Add(*clients)
 
 	for i:=0;i<*clients;i++{
 		go func(clientID int){
 			defer wg.Done()
 
-			err := runClient(
+			stats,err := runClient(
 				address,
 				*requests,
 				*getPercent,
@@ -194,14 +212,45 @@ func main() {
 				*seed+int64(clientID),
 			)
 
-			if err!=nil{
-				fmt.Println("Client",clientID,"error:",err)
-			}
+
+				results <- ClientResult {
+					ClientID: clientID,
+					Stats : stats,
+					Err : err,
+				}
 		}(i)
 	}
 
 	wg.Wait()
 
-	fmt.Println("All clients finished succesfully")
+	total := ClientStats{}
+
+	for i:=0; i<*clients;i++ {
+		result := <-results
+
+		if result.Err != nil{
+			fmt.Println("Client",result.ClientID,"error:",result.Err)
+			
+		}
+
+		total.Get+=result.Stats.Get
+		total.Set+=result.Stats.Set
+		total.Del+=result.Stats.Del
+		total.Successful+=result.Stats.Successful
+
+	}
+
+	expected := *clients * *requests
+	fmt.Println()
+	fmt.Println("===== RESULT =====")
+	fmt.Println("Clients:", *clients)
+	fmt.Println("Expected:", expected)
+	fmt.Println("Successful:", total.Successful)
+
+	fmt.Println()
+	fmt.Println("Operations:")
+	fmt.Println("GET:", total.Get)
+	fmt.Println("SET:", total.Set)
+	fmt.Println("DEL:", total.Del)
 
 }
