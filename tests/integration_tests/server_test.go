@@ -48,7 +48,7 @@ func TestSetGetDel(t *testing.T) {
 		{"SET test_key test_value", "OK\n"},
 		{"GET test_key", "test_value\n"},
 		{"DEL test_key", "OK\n"},
-		{"GET test_value", "NO SUCH KEY\n"},
+		{"GET test_key", "NO SUCH KEY\n"},
 	}
 
 	for _, tt := range tests {
