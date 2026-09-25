@@ -65,7 +65,7 @@ func populateKeyspace(address string, keyspace int) error {
 
 	for i := 0; i < keyspace; i++ {
 		command := fmt.Sprintf(
-			"SET key_%d value_%d\n",
+			"SET benchmark_key_%d value_%d\n",
 			i,
 			i,
 		)
@@ -83,7 +83,27 @@ func populateKeyspace(address string, keyspace int) error {
 
 	return nil
 }
+func cleanupKeyspace(address string, keyspace int) error {
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		return err
+	}
 
+	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+
+	for i := 0; i < keyspace; i++ {
+		command := fmt.Sprintf("DEL benchamrk_key_%d\n", i)
+
+		_, err := sendCommand(conn, reader, command)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 func runClient(
 	address string,
 	requests int,
@@ -92,12 +112,15 @@ func runClient(
 	delPercent int,
 	keyspace int,
 	seed int64,
+	ready chan<- struct{},
+	startSignal <-chan struct{},
 ) (ClientStats,error) {
 
 	stats := ClientStats{}
 	conn, err := net.Dial("tcp", address)
 
 	if err != nil {
+		ready<-struct{}{}
 		return stats,err
 	}
 
@@ -107,11 +130,15 @@ func runClient(
 
 	rng := rand.New(rand.NewSource(seed))
 
+	ready <- struct{}{}
+
+	<-startSignal
+
 	for i := 0; i < requests; i++ {
 		operation := rng.Intn(100)
 
 		keyID := rng.Intn(keyspace)
-		key := fmt.Sprintf("key_%d", keyID)
+		key := fmt.Sprintf("benchmark_key_%d", keyID)
 		var command string
 
 		if operation < getPercent {
@@ -213,11 +240,13 @@ func main() {
 
 	fmt.Println("Starting clients...")
 
-	start := time.Now()
 
 	var wg sync.WaitGroup
 
-	results := make(chan ClientResult,*clients)
+
+	results := make(chan ClientResult, *clients)
+	ready := make(chan struct{}, *clients)
+	startSignal := make(chan struct{})
 
 	wg.Add(*clients)
 
@@ -233,6 +262,8 @@ func main() {
 				*delPercent,
 				*keyspace,
 				*seed+int64(clientID),
+				ready,
+				startSignal,
 			)
 
 
@@ -244,10 +275,30 @@ func main() {
 		}(i)
 	}
 
+	for i := 0; i < *clients; i++ {
+		<-ready
+	}
+
+	fmt.Println("All clients ready")
+
+	start := time.Now()
+
+	close(startSignal)
+
 	wg.Wait()
 
 	elapsed := time.Since(start)
 
+	fmt.Println("Cleaning up keyspace...")
+
+	err = cleanupKeyspace(address, *keyspace)
+
+	if err != nil {
+		fmt.Println("Cleanup error:", err)
+		return
+	}
+
+	fmt.Println("Keyspace cleaned up")
 	
 
 	total := ClientStats{}
