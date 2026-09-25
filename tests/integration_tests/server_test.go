@@ -35,14 +35,20 @@ func TestSetGetDel(t *testing.T) {
 
 	reader := bufio.NewReader(conn)
 
+
+	t.Cleanup(func() {
+		fmt.Fprintf(conn, "DEL test_key\n")
+		reader.ReadString('\n')
+	})
+
 	tests := []struct {
 		command  string
 		expected string
 	}{
-		{"SET name Damir", "OK\n"},
-		{"GET name", "Damir\n"},
-		{"DEL name", "OK\n"},
-		{"GET name", "NO SUCH KEY\n"},
+		{"SET test_key test_value", "OK\n"},
+		{"GET test_key", "test_value\n"},
+		{"DEL test_key", "OK\n"},
+		{"GET test_value", "NO SUCH KEY\n"},
 	}
 
 	for _, tt := range tests {
