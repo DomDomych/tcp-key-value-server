@@ -5,15 +5,14 @@
 
 class MetricsServer
 {
-    public:
-        MetricsServer(boost::asio::io_context& io_context,
-                      std::uint16_t port);
+  public:
+    MetricsServer(boost::asio::io_context &io_context, std::uint16_t port);
 
-        void start();
-        void stop();
-    private:
-        void accept();
+    void start();
+    void stop();
 
+  private:
+    void accept();
 
-        boost::asio::ip::tcp::acceptor acceptor_;
+    boost::asio::ip::tcp::acceptor acceptor_;
 };
