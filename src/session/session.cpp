@@ -37,7 +37,7 @@ void Session::read()
     boost::asio::async_read_until(
         socket_, boost::asio::dynamic_buffer(buffer_), '\n',
         boost::asio::bind_executor(strand_,
-                                   [self](boost::system::error_code ec, std::size_t bytes)
+                                   [self,this](boost::system::error_code ec, std::size_t bytes)
                                    {
                                        if (ec)
                                        {
@@ -59,6 +59,21 @@ void Session::read()
 
                                        Request req{};
                                        parse(req, temp_data);
+
+                                       if(req.command == "GET")
+                                       {
+                                        metrics_.inc_get_requests();
+                                       }
+
+                                       else if(req.command == "SET")
+                                       {
+                                        metrics_.inc_set_requests();
+                                       }
+
+                                       else 
+                                       {
+                                        metrics_.inc_del_requests();
+                                       }
 
                                        self->response_ = process(req, self->server_storage_);
 
@@ -111,15 +126,11 @@ void Session::stop()
 
                               self->stopping_ = true;
 
-                              // Если сейчас отправляем результат уже обработанной команды,
-                              // позволяем async_write закончиться.
                               if (self->writing_)
                               {
                                   return;
                               }
 
-                              // Иначе Session просто ждёт следующую команду —
-                              // её можно закрывать сразу.
                               self->close();
                           });
 }
