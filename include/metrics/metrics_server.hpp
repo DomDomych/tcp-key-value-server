@@ -10,9 +10,10 @@ class MetricsServer
                       std::uint16_t port);
 
         void start();
-    
+        void stop();
     private:
         void accept();
+
 
         boost::asio::ip::tcp::acceptor acceptor_;
 };

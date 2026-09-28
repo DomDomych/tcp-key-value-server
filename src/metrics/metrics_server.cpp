@@ -3,6 +3,7 @@
 #include <boost/beast.hpp>
 #include <memory>
 #include <string>
+#include <iostream>
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -112,14 +113,29 @@ void MetricsServer::accept()
     acceptor_.async_accept(
         [this](beast::error_code ec,tcp::socket socket)
         {
-            if(!ec)
+            if(ec)
             {
-                std::make_shared<MetricsSession>(
-                    std::move(socket)
-                )->start();
+                if(ec!=boost::asio::error::operation_aborted)
+                {
+                    std::cerr
+                    << "Metrics accept error: "
+                    << ec.message()
+                    << '\n';
+                }
+
+                return;
             }
+
+            std::make_shared<MetricsSession>(
+                std::move(socket))->start();
 
             accept();
         }
     );
+}
+
+void MetricsServer::stop()
+{
+    boost::system::error_code ec;
+    acceptor_.close(ec);
 }

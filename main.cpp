@@ -1,4 +1,5 @@
 #include "server/server.hpp"
+#include "metrics/metrics_server.hpp"   
 
 #include <algorithm>
 #include <boost/asio.hpp>
@@ -14,10 +15,14 @@ int main()
     Server server(io, 8080);
     server.start();
 
+    MetricsServer metrics_server(io,9090);
+    metrics_server.start();
+
+
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
 
     signals.async_wait(
-        [&server](const boost::system::error_code &ec, int signal_number)
+        [&server,&metrics_server](const boost::system::error_code &ec, int signal_number)
         {
             if (ec)
             {
@@ -27,6 +32,7 @@ int main()
             std::cout << "Received signal " << signal_number << ". Shutting down...\n";
 
             server.stop();
+            metrics_server.stop();
         });
 
     const std::size_t thread_count = std::max(1u, std::thread::hardware_concurrency());
