@@ -47,11 +47,19 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
         {
             response_.result(http::status::ok);
 
-            response_.set(http::field::content_type, "text/plain: version=0.0.4");
+            response_.set(http::field::content_type, "text/plain; version=0.0.4");
 
-            response_.body() = "# metrics will be here\n";
+            response_.body() =
+                "# TYPE kv_requests_total counter\n"
+                "kv_requests_total{command=\"GET\"} " +
+                std::to_string(metrics_.get_requests()) + "\n" +
+
+                "kv_requests_total{command=\"SET\"} " +
+                std::to_string(metrics_.set_requests()) + "\n" +
+
+                "kv_requests_total{command=\"DEL\"} " +
+                std::to_string(metrics_.del_requests()) + "\n";
         }
-
         else
         {
             response_.result(http::status::not_found);
