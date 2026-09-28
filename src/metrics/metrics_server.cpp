@@ -16,7 +16,7 @@ namespace
 class MetricsSession : public std::enable_shared_from_this<MetricsSession>
 {
   public:
-    explicit MetricsSession(tcp::socket socket) : socket_(std::move(socket)) {};
+    explicit MetricsSession(tcp::socket socket,Metrics& metrics) : socket_(std::move(socket)),metrics_(metrics) {};
 
     void start()
     {
@@ -78,14 +78,16 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
 
     boost::beast::flat_buffer buffer_;
 
-    http::request<boost::beast::http::string_body> request_;
+    http::request<http::string_body> request_;
 
-    http::response<boost::beast::http::string_body> response_;
+    http::response<http::string_body> response_;
+
+    Metrics& metrics_;
 };
 } // namespace
 
-MetricsServer::MetricsServer(asio::io_context &io_context, std::uint16_t port)
-    : acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
+MetricsServer::MetricsServer(asio::io_context &io_context, std::uint16_t port,Metrics& metrics)
+    : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),metrics_(metrics)
 {
 }
 
@@ -109,7 +111,7 @@ void MetricsServer::accept()
                 return;
             }
 
-            std::make_shared<MetricsSession>(std::move(socket))->start();
+            std::make_shared<MetricsSession>(std::move(socket),metrics_)->start();
 
             accept();
         });
