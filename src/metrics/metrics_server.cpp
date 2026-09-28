@@ -1,9 +1,9 @@
 #include "metrics/metrics_server.hpp"
 
 #include <boost/beast.hpp>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <iostream>
 
 namespace asio = boost::asio;
 namespace beast = boost::beast;
@@ -43,15 +43,11 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
         response_.version(request_.version());
         response_.keep_alive(false);
 
-        if(request_.method() == http::verb::get &&
-           request_.target() == "/metrics" )
+        if (request_.method() == http::verb::get && request_.target() == "/metrics")
         {
             response_.result(http::status::ok);
 
-            response_.set(
-                http::field::content_type,
-                "text/plain: version=0.0.4"
-            );  
+            response_.set(http::field::content_type, "text/plain: version=0.0.4");
 
             response_.body() = "# metrics will be here\n";
         }
@@ -60,7 +56,7 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
         {
             response_.result(http::status::not_found);
 
-            response_.set(http::field::content_type,"text/plain");
+            response_.set(http::field::content_type, "text/plain");
 
             response_.body() = "Not Found\n";
         }
@@ -69,19 +65,13 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
 
         auto self = shared_from_this();
 
-        http::async_write(
-            socket_,
-            response_,
-            [self](beast::error_code,std::size_t)
-            {
-                beast::error_code ec;
+        http::async_write(socket_, response_,
+                          [self](beast::error_code, std::size_t)
+                          {
+                              beast::error_code ec;
 
-                self->socket_.shutdown(
-                    tcp::socket::shutdown_send,
-                    ec
-                );
-            }
-        );
+                              self->socket_.shutdown(tcp::socket::shutdown_send, ec);
+                          });
     }
 
     tcp::socket socket_;
@@ -94,12 +84,8 @@ class MetricsSession : public std::enable_shared_from_this<MetricsSession>
 };
 } // namespace
 
-MetricsServer::MetricsServer(
-    asio::io_context& io_context,
-    std::uint16_t port)
-    : acceptor_(
-        io_context,
-        tcp::endpoint(tcp::v4(),port))
+MetricsServer::MetricsServer(asio::io_context &io_context, std::uint16_t port)
+    : acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
 {
 }
 
@@ -111,27 +97,22 @@ void MetricsServer::start()
 void MetricsServer::accept()
 {
     acceptor_.async_accept(
-        [this](beast::error_code ec,tcp::socket socket)
+        [this](beast::error_code ec, tcp::socket socket)
         {
-            if(ec)
+            if (ec)
             {
-                if(ec!=boost::asio::error::operation_aborted)
+                if (ec != boost::asio::error::operation_aborted)
                 {
-                    std::cerr
-                    << "Metrics accept error: "
-                    << ec.message()
-                    << '\n';
+                    std::cerr << "Metrics accept error: " << ec.message() << '\n';
                 }
 
                 return;
             }
 
-            std::make_shared<MetricsSession>(
-                std::move(socket))->start();
+            std::make_shared<MetricsSession>(std::move(socket))->start();
 
             accept();
-        }
-    );
+        });
 }
 
 void MetricsServer::stop()
