@@ -30,6 +30,7 @@ add_executable(kv_server
     src/storage/lru_cache.cpp
     src/storage/connection_pool.cpp
     src/metrics/metrics_server.cpp
+    src/metrics/metrics.cpp
 )
 
 target_include_directories(kv_server
