@@ -18,7 +18,7 @@ int main()
     Server server(io, 8080,metrics);
     server.start();
 
-    MetricsServer metrics_server(io, 9090);
+    MetricsServer metrics_server(io, 9090,metrics);
     metrics_server.start();
 
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
