@@ -29,6 +29,7 @@ add_executable(kv_server
     src/storage/postgres_storage.cpp
     src/storage/lru_cache.cpp
     src/storage/connection_pool.cpp
+    src/metrics/metrics_server.cpp
 )
 
 target_include_directories(kv_server
