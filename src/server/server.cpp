@@ -41,9 +41,10 @@ std::string make_database_connection_string()
 
 } // namespace
 
-Server::Server(boost::asio::io_context &io, unsigned short port)
+Server::Server(boost::asio::io_context &io, unsigned short port,Metrics& metrics)
     : strand_(boost::asio::make_strand(io)), acceptor_(io, tcp::endpoint(tcp::v4(), port)),
-      storage_(make_database_connection_string(), 100, 4)
+      storage_(make_database_connection_string(), 100, 4),
+      metrics_(metrics)
 {
 }
 
@@ -61,7 +62,7 @@ void Server::accept_client()
             if (!ec)
             {
                 auto session = std::make_shared<Session>(
-                    std::move(socket), storage_,
+                    std::move(socket), storage_, metrics_,
                     [this](std::shared_ptr<Session> session)
                     {
                         boost::asio::post(strand_, [this, session = std::move(session)]()

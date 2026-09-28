@@ -1,5 +1,6 @@
+#include "metrics/metrics_server.hpp"
 #include "server/server.hpp"
-#include "metrics/metrics_server.hpp"   
+#include "metrics/metrics.hpp"
 
 #include <algorithm>
 #include <boost/asio.hpp>
@@ -12,17 +13,18 @@ int main()
 {
     boost::asio::io_context io;
 
-    Server server(io, 8080);
+    Metrics metrics;
+
+    Server server(io, 8080,metrics);
     server.start();
 
-    MetricsServer metrics_server(io,9090);
+    MetricsServer metrics_server(io, 9090);
     metrics_server.start();
-
 
     boost::asio::signal_set signals(io, SIGINT, SIGTERM);
 
     signals.async_wait(
-        [&server,&metrics_server](const boost::system::error_code &ec, int signal_number)
+        [&server, &metrics_server](const boost::system::error_code &ec, int signal_number)
         {
             if (ec)
             {

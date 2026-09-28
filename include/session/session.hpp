@@ -1,5 +1,6 @@
 #pragma once
 
+#include "metrics/metrics.hpp"
 #include <boost/asio.hpp>
 #include <functional>
 #include <memory>
@@ -13,7 +14,7 @@ class Session : public std::enable_shared_from_this<Session>
   public:
     using CloseHandler = std::function<void(std::shared_ptr<Session>)>;
 
-    Session(tcp::socket socket, Storage &server_storage, CloseHandler on_close);
+    Session(tcp::socket socket, Storage &server_storage,Metrics& metrics, CloseHandler on_close);
 
     void start();
     void stop();
@@ -35,4 +36,5 @@ class Session : public std::enable_shared_from_this<Session>
     bool stopping_{false};
     bool writing_{false};
     bool closed_{false};
+    Metrics& metrics_;
 };

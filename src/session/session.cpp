@@ -10,9 +10,9 @@
 
 using tcp = boost::asio::ip::tcp;
 
-Session::Session(tcp::socket socket, Storage &server_storage, CloseHandler on_close)
+Session::Session(tcp::socket socket, Storage &server_storage,Metrics& metrics, CloseHandler on_close)
     : socket_(std::move(socket)), strand_(boost::asio::make_strand(socket_.get_executor())),
-      server_storage_(server_storage), on_close_(std::move(on_close))
+      server_storage_(server_storage),metrics_(metrics), on_close_(std::move(on_close))
 {
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "metrics/metrics.hpp"
 #include <boost/asio.hpp>
 #include <memory>
 #include <storage/storage.hpp>
@@ -10,7 +11,7 @@ class Session;
 class Server
 {
   public:
-    Server(boost::asio::io_context &io, unsigned short port);
+    Server(boost::asio::io_context &io, unsigned short port,Metrics& metrics);
 
     void start();
     void stop();
@@ -27,4 +28,6 @@ class Server
     std::unordered_set<std::shared_ptr<Session>> sessions_;
 
     bool stopping_{false};
+
+    Metrics& metrics_;
 };
